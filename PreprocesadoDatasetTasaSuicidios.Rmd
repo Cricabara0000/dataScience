@@ -1,0 +1,88 @@
+---
+title: "PreprocesadoTasaSuicidiosPaisAño"
+author: "Jorge Sillero"
+date: "2024-02-21"
+output: html_document
+---
+
+# Tasa de Suicidios por Pais y Año
+
+## Lectura del Dataset
+
+```{r}
+datos <- read.csv("data/1.1.OMSTasaMortalidadSuicidio/16BBF41_ALL_LATEST.csv")
+
+head(datos)
+```
+
+Nos quedamos únicamente con las columnas:
+
+-   GEO_NAME_SHORT
+
+-   DIM_TIME
+
+-   DIM_SEX
+
+-   VALUE_NUMERIC
+
+```{r}
+datos <- datos[, c("GEO_NAME_SHORT", "DIM_TIME", "DIM_SEX", "VALUE_NUMERIC")]
+
+head(datos)
+```
+
+## Estudio del Dataset
+
+### Paises
+
+Necesitamos saber cuales son los paises que están en el conjunto de datos.
+
+```{r}
+# Mostrar los países únicos
+paises_unicos <- sort(unique(datos$GEO_NAME_SHORT))
+
+df_paises <- data.frame(GEO_NAME_SHORT = paises_unicos)
+
+df_paises
+```
+
+Crear un csv con los paises
+
+```{r}
+# Especificar la ruta donde deseas guardar el archivo CSV
+ruta_exportacion <- "data/1.1.OMSTasaMortalidadSuicidio/paises_tasa_suicidio.csv"
+
+# Exportar el dataframe a un archivo CSV
+write.csv(df_paises, file = ruta_exportacion, row.names = FALSE)
+
+# Imprimir un mensaje indicando que la exportación fue exitosa
+cat("El archivo CSV se ha exportado exitosamente a:", ruta_exportacion, "\n")
+```
+
+### Años
+
+Cuales son los años del dataset
+
+```{r}
+# Obtener valores únicos de DIM_TIME en el dataframe columnas_necesarias
+valores_dim_time_unicos <- unique(datos$DIM_TIME)
+
+# Mostrar los valores únicos de DIM_TIME
+print(valores_dim_time_unicos)
+```
+
+### Años faltantes
+
+```{r}
+# Crear una combinación de todas las combinaciones posibles de país y año
+combinaciones_pais_anio <- expand.grid(GEO_NAME_SHORT = unique(datos$GEO_NAME_SHORT), DIM_TIME = valores_dim_time_unicos)
+
+# Combinar con el dataframe original para verificar la existencia de cada combinación
+verificacion_combinaciones <- merge(combinaciones_pais_anio, datos, by = c("GEO_NAME_SHORT", "DIM_TIME"), all.x = TRUE)
+
+# Verificar si hay alguna combinación faltante
+combinaciones_faltantes <- verificacion_combinaciones[is.na(verificacion_combinaciones$VALUE_NUMERIC), ]
+
+# Mostrar las combinaciones faltantes
+print(combinaciones_faltantes)
+```
