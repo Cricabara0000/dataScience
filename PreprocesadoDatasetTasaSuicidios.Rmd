@@ -10,7 +10,7 @@ output: html_document
 ## Lectura del Dataset
 
 ```{r}
-datos <- read.csv("data/1.1.OMSTasaMortalidadSuicidio/16BBF41_ALL_LATEST.csv")
+datos <- read.csv("data/1.OMSTasaMortalidadSuicidio/16BBF41_ALL_LATEST.csv")
 
 head(datos)
 ```
