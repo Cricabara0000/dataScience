@@ -1,0 +1,94 @@
+---
+title: "PreprocesamientoGastoSaludPaís"
+author: "Miguel Matamoros"
+date: "2024-02-22"
+output: html_document
+---
+
+# Gasto en salud por país
+
+## Lectura del dataset
+
+list.files()
+
+```{r}
+library(readr)
+datos <- read.csv("B9C6C79_ALL_LATEST.csv")
+
+head(datos)
+```
+
+Nos quedamos con las columnas: GEO_NAME_SHORT, DIM_TIME, VALUE_NUMERIC
+
+# Selección de columnas
+
+library(dplyr)
+
+```{r}
+datos_seleccionados <- select(datos, GEO_NAME_SHORT, DIM_TIME, VALUE_NUMERIC)
+head(datos_seleccionados)
+
+```
+# Identificación de los años
+
+```{r}
+años_unicos <- unique(datos_seleccionados$DIM_TIME)
+print(años_unicos)
+
+```
+```{r}
+datos_por_pais <- datos_seleccionados %>%
+  group_by(GEO_NAME_SHORT) %>%
+  summarise(Años = list(unique(DIM_TIME))) %>%
+  mutate(Num_Años = lengths(Años))
+
+print(datos_por_pais)
+
+```
+
+```{r}
+
+# Agrupar por país y contar los años únicos para cada uno
+paises_con_diferente_cantidad_de_años <- datos_seleccionados %>%
+  group_by(GEO_NAME_SHORT) %>%
+  summarise(Num_Años = n_distinct(DIM_TIME)) %>%
+  filter(Num_Años != 21) # Filtrar aquellos países que no tienen exactamente 21 años
+
+# Imprimir los resultados
+print(paises_con_diferente_cantidad_de_años)
+
+```
+# Quitar año 2020
+
+```{r}
+# Filtrar el dataset para excluir filas donde el año es 2020
+datos_sin_2020 <- datos_seleccionados %>%
+  filter(DIM_TIME != 2020)
+
+# Verificar los cambios viendo los años únicos restantes
+años_unicos_despues_de_filtrar <- unique(datos_sin_2020$DIM_TIME)
+print(años_unicos_despues_de_filtrar)
+```
+# obtención de la lista de países
+
+```{r}
+# Obtener la lista única de países
+lista_paises <- unique(datos_sin_2020$GEO_NAME_SHORT)
+
+# Imprimir la lista de países
+print(lista_paises)
+
+```
+# Generación de archivos
+
+```{r}
+# Generar el archivo CSV
+write.csv(datos_sin_2020, "datos_filtrados.csv", row.names = FALSE)
+```
+
+```{r}
+ruta_completa <- "C:/Users/Miguel Matamoros/Desktop/Máster/DataScience/dataScience-main/dataScience-main/data/3.spendinhealth/datos_filtrados.csv"
+write.csv(datos_sin_2020, ruta_completa, row.names = FALSE)
+
+```
+
