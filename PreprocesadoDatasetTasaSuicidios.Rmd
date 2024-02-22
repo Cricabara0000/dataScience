@@ -96,7 +96,7 @@ print(combinaciones_faltantes)
 library(ggplot2)
 
 # Filtrar los datos para DIM_SEX = Total y excluir el año 2019
-datos_filtrados <- datos[datos$DIM_SEX == "Total", ]
+datos_filtrados <- datos[datos$DIM_SEX == "Total" & datos$DIM_TIME != 2019,]
 
 # Calcular la media de los valores de suicidios para cada año
 datos_globales <- aggregate(VALUE_NUMERIC ~ DIM_TIME, data = datos_filtrados, mean)
