@@ -3,6 +3,8 @@ title: "PreprocesadoTasaSuicidiosPaisAño"
 author: "Jorge Sillero"
 date: "2024-02-21"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # Tasa de Suicidios por Pais y Año
@@ -85,4 +87,27 @@ combinaciones_faltantes <- verificacion_combinaciones[is.na(verificacion_combina
 
 # Mostrar las combinaciones faltantes
 print(combinaciones_faltantes)
+```
+
+## Visualización
+
+```{r}
+# Cargar la biblioteca necesaria
+library(ggplot2)
+
+# Filtrar los datos para DIM_SEX = Total y excluir el año 2019
+datos_filtrados <- datos[datos$DIM_SEX == "Total", ]
+
+# Calcular la media de los valores de suicidios para cada año
+datos_globales <- aggregate(VALUE_NUMERIC ~ DIM_TIME, data = datos_filtrados, mean)
+
+# Crear un gráfico de líneas utilizando ggplot
+ggplot(datos_globales, aes(x = DIM_TIME, y = VALUE_NUMERIC)) +
+  geom_line() +
+  labs(title = "Evolución del número medio de suicidios por año en el mundo (DIM_SEX = Total)",
+       x = "Año",
+       y = "Número medio de suicidios") +
+  theme_minimal()
+
+
 ```

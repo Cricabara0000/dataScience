@@ -13,7 +13,7 @@ list.files()
 
 ```{r}
 library(readr)
-datos <- read.csv("B9C6C79_ALL_LATEST.csv")
+datos <- read.csv("data/3.spendinhealth/B9C6C79_ALL_LATEST.csv")
 
 head(datos)
 ```
@@ -22,13 +22,13 @@ Nos quedamos con las columnas: GEO_NAME_SHORT, DIM_TIME, VALUE_NUMERIC
 
 # Selección de columnas
 
-library(dplyr)
-
 ```{r}
+library(dplyr)
 datos_seleccionados <- select(datos, GEO_NAME_SHORT, DIM_TIME, VALUE_NUMERIC)
 head(datos_seleccionados)
 
 ```
+
 # Identificación de los años
 
 ```{r}
@@ -36,6 +36,7 @@ años_unicos <- unique(datos_seleccionados$DIM_TIME)
 print(años_unicos)
 
 ```
+
 ```{r}
 datos_por_pais <- datos_seleccionados %>%
   group_by(GEO_NAME_SHORT) %>%
@@ -58,6 +59,7 @@ paises_con_diferente_cantidad_de_años <- datos_seleccionados %>%
 print(paises_con_diferente_cantidad_de_años)
 
 ```
+
 # Quitar año 2020
 
 ```{r}
@@ -69,6 +71,7 @@ datos_sin_2020 <- datos_seleccionados %>%
 años_unicos_despues_de_filtrar <- unique(datos_sin_2020$DIM_TIME)
 print(años_unicos_despues_de_filtrar)
 ```
+
 # obtención de la lista de países
 
 ```{r}
@@ -79,6 +82,7 @@ lista_paises <- unique(datos_sin_2020$GEO_NAME_SHORT)
 print(lista_paises)
 
 ```
+
 # Generación de archivos
 
 ```{r}
@@ -87,8 +91,7 @@ write.csv(datos_sin_2020, "datos_filtrados.csv", row.names = FALSE)
 ```
 
 ```{r}
-ruta_completa <- "C:/Users/Miguel Matamoros/Desktop/Máster/DataScience/dataScience-main/dataScience-main/data/3.spendinhealth/datos_filtrados.csv"
+ruta_completa <- "data/3.spendinhealth/datos_filtrados.csv"
 write.csv(datos_sin_2020, ruta_completa, row.names = FALSE)
 
 ```
-
