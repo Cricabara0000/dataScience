@@ -43,3 +43,57 @@ merged_data <- merge(suicidios_total, gasto, by = c("GEO_NAME_SHORT", "DIM_TIME"
 
 head(merged_data)
 ```
+
+Añadir dataset de enfermedades mentales también
+
+Agrupar por país y hacer la media de los valores de las variables
+
+Realizar clustering viendo el número optimo
+
+En base al número optimo intentar dar una explicación.
+
+```{r}
+# Crear el nuevo conjunto de datos resumido
+df <- merged_data %>%
+  group_by(GEO_NAME_SHORT) %>%
+  summarize(
+    SUICIDIOS = mean(TASA_SUICIDIOS),
+    GASTO_SALUD = mean(GASTO_SALUD)
+  )
+
+head(df)
+```
+
+```{r}
+library(factoextra)
+
+# Selecciona las columnas relevantes para el clustering
+datos_clustering <- df[, c("SUICIDIOS", "GASTO_SALUD")]
+
+# Realiza el clustering utilizando k-means con un número arbitrario de clusters (en este caso, 3)
+set.seed(123)  # Para reproducibilidad
+kmeans_result <- kmeans(datos_clustering, centers = 3, nstart = 20)
+
+# Añade la información del cluster al conjunto de datos original
+df$Cluster <- as.factor(kmeans_result$cluster)
+
+# Muestra el resultado
+head(df)
+```
+
+```{r}
+# Visualización de los clusters
+fviz_cluster(kmeans_result, geom = "point", data = datos_clustering, 
+             title = "Clustering de Tasa de Suicidios y Gasto en Salud")
+
+# Añadir información de clusters al conjunto de datos original
+df$Cluster <- as.factor(kmeans_result$cluster)
+
+# Análisis de cada cluster por separado
+for (i in unique(df$Cluster)) {
+  cluster_data <- df[df$Cluster == i, ]
+  cat("Cluster", i, ":\n")
+  print(summary(cluster_data))
+  cat("\n")
+}
+```
