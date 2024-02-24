@@ -111,3 +111,14 @@ ggplot(datos_globales, aes(x = DIM_TIME, y = VALUE_NUMERIC)) +
 
 
 ```
+
+```{r}
+# Especificar la ruta donde deseas guardar el archivo CSV
+ruta_exportacion <- "data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv"
+
+# Exportar el dataframe a un archivo CSV
+write.csv(datos, file = ruta_exportacion, row.names = FALSE)
+
+# Imprimir un mensaje indicando que la exportación fue exitosa
+cat("El archivo CSV se ha exportado exitosamente a:", ruta_exportacion, "\n")
+```

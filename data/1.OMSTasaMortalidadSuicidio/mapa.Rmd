@@ -1,0 +1,129 @@
+---
+title: "Mapa"
+author: "Jorge Sillero"
+date: "2024-02-24"
+output: html_document
+---
+
+```{r}
+library(shiny)
+library(ggplot2)
+library(dplyr)
+
+# Carga tus datos
+tu_dataset <- read.csv("tasa_suicidio_por_pais.csv")
+
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+   
+   # Application title
+   titlePanel("Interactive Bar Chart"),
+   
+   # Sidebar with a slider input for the year
+   sidebarLayout(
+      sidebarPanel(
+         sliderInput("year",
+                     "Year:",
+                     min = min(tu_dataset$DIM_TIME),
+                     max = max(tu_dataset$DIM_TIME),
+                     value = min(tu_dataset$DIM_TIME),
+                     step = 1)
+      ),
+      
+      # Show a plot of the generated distribution
+      mainPanel(
+         plotOutput("countryPlot")
+      )
+   )
+)
+
+# Define server logic required to draw the bar chart
+server <- function(input, output) {
+   
+   output$countryPlot <- renderPlot({
+      filtered_data <- tu_dataset %>%
+         filter(DIM_TIME == input$year)
+      
+      ggplot(filtered_data, aes(x = GEO_NAME_SHORT, y = VALUE_NUMERIC, fill = DIM_SEX)) +
+         geom_bar(stat = "identity") +
+         labs(title = paste("Value by Country in", input$year),
+              x = "Country", y = "Value") +
+         theme(axis.text.x = element_text(angle = 45, hjust = 1))
+   })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+```
+
+```{r}
+#install.packages("countrycode")
+#install.packages("cshapes")
+library(countrycode)
+library(cshapes)
+
+# Asigna códigos de país ISO
+tu_dataset$ISO3 <- countrycode(sourcevar = tu_dataset$GEO_NAME_SHORT,
+                                origin = 'country.name',
+                                destination = 'iso3c')
+
+
+```
+
+```{r}
+library(shiny)
+library(leaflet)
+library(countrycode)
+
+# Define UI for application that draws a map
+ui <- fluidPage(
+   
+   # Application title
+   titlePanel("World Map Visualization"),
+   
+   # Sidebar with an input for country selection
+   sidebarLayout(
+      sidebarPanel(
+         textInput("countryInput",
+                   "Enter country name or ISO code:",
+                   value = "Afghanistan"),
+         actionButton("showMap", "Show Map")
+      ),
+      
+      # Show a map
+      mainPanel(
+         leafletOutput("worldMap")
+      )
+   )
+)
+
+# Define server logic required to draw the map
+server <- function(input, output) {
+   
+   country_data <- reactive({
+      selected_country <- countrycode(sourcevar = input$countryInput,
+                                      origin = 'country.name',
+                                      destination = 'iso3c')
+      filter(tu_dataset, ISO3 == selected_country)
+   })
+   
+   output$worldMap <- renderLeaflet({
+      leaflet() %>%
+         addTiles() %>%
+         setView(lng = 0, lat = 30, zoom = 2) # Ajusta la vista inicial del mapa
+   })
+   
+   observeEvent(input$showMap, {
+      leafletProxy("worldMap") %>%
+         clearMarkers() %>%
+         addMarkers(data = country_data(),
+                    lng = ~longitude,
+                    lat = ~latitude,
+                    popup = ~paste(GEO_NAME_SHORT, "<br>Value: ", VALUE_NUMERIC))
+   })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```

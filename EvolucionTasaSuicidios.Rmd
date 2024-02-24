@@ -1,0 +1,118 @@
+---
+title: "EvoluciónTasaSuicidios"
+author: "Jorge Sillero"
+date: "2024-02-24"
+output: html_document
+---
+
+# Evolución Tasa de Suicidios por País
+
+## Caga del dataset
+
+```{r}
+data <- read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
+
+head(data)
+
+summary(data)
+```
+
+```         
+```
+
+```{r}
+library(shiny)
+library(ggplot2)
+library(dplyr)
+library(plotly)
+
+
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+   
+   # Application title
+   titlePanel("Evolución Tasa Suicidios"),
+   
+   # Sidebar with a slider input for number of bins 
+   sidebarLayout(
+      sidebarPanel(
+         sliderInput("year",
+                     "Year:",
+                     min = min(data[["DIM_TIME"]]),
+                     max = max(data[["DIM_TIME"]]),
+                     value = min(data[["DIM_TIME"]]),
+                     step=1)
+      ),
+      
+      # Show a plot of the generated distribution
+      mainPanel(
+         plotOutput("continentPlot")
+      )
+   )
+)
+```
+
+```{r}
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+
+  output$suicideMap <- renderPlotly({
+    filteredData <- filter(data, DIM_TIME == input$year)
+
+    plot_ly(data = filteredData,
+            type = 'choropleth',
+            locations = ~GEO_NAME_SHORT,
+            locationmode = "country names",
+            z = ~VALUE_NUMERIC,
+            color = ~VALUE_NUMERIC,
+            text = ~paste("País: ", GEO_NAME_SHORT, "<br>Tasa de suicidios: ", VALUE_NUMERIC)) %>%
+      layout(title = paste("Tasa de suicidios por país en el año", input$year),
+             geo = list(showframe = FALSE, projection = list(type = 'mercator')))
+  })
+}
+```
+
+```{r}
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
+
+```{r}
+# Crear la aplicación Shiny
+ui <- fluidPage(
+  titlePanel("Mapa Interactivo"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("year", "Seleccionar Año", 
+                  min = min(data$DIM_TIME), 
+                  max = max(data$DIM_TIME), 
+                  value = min(data$DIM_TIME),
+                  step = 1)
+    ),
+    mainPanel(
+      leafletOutput("map")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  
+  # Filtrar datos por el año seleccionado
+  filtered_data <- reactive({
+    filter(data, DIM_TIME == input$year)
+  })
+  
+  # Crear el mapa
+  output$map <- renderLeaflet({
+    leaflet(data = filtered_data()) %>%
+      addTiles() %>%
+      addMarkers(lng = ~LONGITUDE, lat = ~LATITUDE, 
+                 label = ~as.character(VALUE_NUMERIC))
+  })
+}
+
+# Ejecutar la aplicación Shiny
+shinyApp(ui, server)
+
+```

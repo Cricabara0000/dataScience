@@ -1,0 +1,45 @@
+---
+title: "Clustering"
+author: "Jorge Sillero"
+date: "2024-02-24"
+output: html_document
+---
+
+# ¿Hay alguna forma de agrupar los paises en base a la tasa de suicidio y el gasto en salud?
+
+## Unir datasets
+
+```{r}
+suicidios <- read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
+
+gasto <- read.csv("data/3.spendinhealth/datos_filtrados.csv")
+```
+
+```{r}
+# Carga la biblioteca dplyr
+library(dplyr)
+
+# Encuentra países en df1 que no están en df2
+countries_not_in_gasto <- anti_join(suicidios, gasto, by = "GEO_NAME_SHORT")
+
+# Encuentra países en df2 que no están en df1
+countries_not_in_suicidios <- anti_join(gasto, suicidios, by = "GEO_NAME_SHORT")
+
+
+unique(countries_not_in_gasto$GEO_NAME_SHORT)
+
+unique(countries_not_in_suicidios$GEO_NAME_SHORT)
+```
+
+```{r}
+# Filtrar data1 por DIM_SEX == "Total"
+suicidios_total <- subset(suicidios, DIM_SEX == "Total")
+
+colnames(suicidios_total)[4] <- "TASA_SUICIDIOS"
+colnames(gasto)[3] <- "GASTO_SALUD"
+
+# Unir los datasets por "GEO_NAME_SHORT" y "DIM_TIME"
+merged_data <- merge(suicidios_total, gasto, by = c("GEO_NAME_SHORT", "DIM_TIME"))
+
+head(merged_data)
+```
