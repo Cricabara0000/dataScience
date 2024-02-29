@@ -1,0 +1,193 @@
+---
+title: "Representación número de suicidios y renta per cápita a lo largo de los años"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+# cargar el dataset de renta per cápita
+tryCatch({
+  df_renta <- read.csv("C:/Users/Miguel Matamoros/Desktop/Máster/DataScience/dataScience-main/dataScience-main/data/5.WorldBankGDP/API_NY.GDP.PCAP.CD_DS2_es_csv_v2_465.csv", skip = 4)
+  cat("El dataset de renta per cápita se ha cargado correctamente.\n")
+}, error = function(e) {
+  cat("Error al cargar el dataset de renta per cápita: ", e$message, "\n")
+})
+
+# cargar el dataset de suicidios
+tryCatch({
+  df_suicidios <- read.csv("C:/Users/Miguel Matamoros/Desktop/Máster/DataScience/dataScience-main/dataScience-main/data/3.spendinhealth/datos_filtrados.csv")
+  cat("El dataset de suicidios se ha cargado correctamente.\n")
+}, error = function(e) {
+  cat("Error al cargar el dataset de suicidios: ", e$message, "\n")
+})
+
+
+```
+```{r}
+colnames(df_renta)
+
+```
+```{r}
+library(tidyverse)
+
+# Asegúrate de ajustar el código para usar los nombres de columnas correctos
+df_renta_long <- df_renta %>%
+  select(Country.Name, X2000:X2019) %>%
+  pivot_longer(cols = X2000:X2019, names_to = "Year", values_to = "GDP_Per_Capita") %>%
+  mutate(Year = as.numeric(str_remove(Year, "X")))
+
+# Verificar el resultado
+print(head(df_renta_long))
+
+```
+```{r}
+# Ajusta los nombres de las columnas en el dataset de suicidios
+df_suicidios_adjusted <- df_suicidios %>%
+  rename(Country.Name = GEO_NAME_SHORT, Year = DIM_TIME) %>%
+  mutate(Year = as.numeric(Year))
+
+```
+
+```{r}
+# Fusionar los datasets
+df_combined <- inner_join(df_renta_long, df_suicidios_adjusted, by = c("Country.Name" = "Country.Name", "Year" = "Year"))
+# Ver las primeras filas del dataframe combinado
+head(df_combined)
+
+```
+
+```{r}
+# Conteo de valores únicos para países
+length(unique(df_combined$`Country.Name`))
+
+# Conteo de valores únicos para años
+length(unique(df_combined$Year))
+
+```
+```{r}
+# Verificar valores faltantes en columnas clave
+sum(is.na(df_combined$`Country.Name`))
+sum(is.na(df_combined$Year))
+sum(is.na(df_combined$GDP_Per_Capita))
+sum(is.na(df_combined$VALUE_NUMERIC))
+```
+
+```{r}
+
+# Calcular sumatorios anuales de renta per cápita y suicidios usando el nombre correcto de la columna
+annual_summaries <- df_combined %>%
+  group_by(Year) %>%
+  summarise(Total_GDP_Per_Capita = sum(GDP_Per_Capita, na.rm = TRUE),
+            Total_Suicides = sum(VALUE_NUMERIC, na.rm = TRUE))
+
+
+```
+
+
+```{r}
+# Crear el gráfico de líneas
+ggplot(annual_summaries, aes(x = Year)) +
+  geom_line(aes(y = Total_GDP_Per_Capita, colour = "Renta Per Cápita")) +
+  geom_line(aes(y = Total_Suicides, colour = "Suicidios por 100k")) +
+  scale_colour_manual("", 
+                      breaks = c("Renta Per Cápita", "Suicidios por 100k"),
+                      values = c("Renta Per Cápita" = "blue", "Suicidios por 100k" = "red")) +
+  labs(title = "Evolución de la Renta Per Cápita y Suicidios por 100k Habitantes (2000-2019)",
+       y = "Valor Total",
+       x = "Año") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+
+```
+
+```{r}
+# Calcular sumatorios anuales de renta per cápita y número total de suicidios
+annual_summaries <- df_combined %>%
+  group_by(Year) %>%
+  summarise(Total_GDP_Per_Capita = sum(GDP_Per_Capita, na.rm = TRUE),
+            Total_Suicides = sum(VALUE_NUMERIC, na.rm = TRUE))  # Asume que VALUE_NUMERIC es el número total de suicidios
+
+```
+
+```{r}
+# Crear el gráfico de líneas con renta per cápita y número total de suicidios
+ggplot(annual_summaries, aes(x = Year)) +
+  geom_line(aes(y = Total_GDP_Per_Capita, colour = "Renta Per Cápita")) +
+  geom_line(aes(y = Total_Suicides, colour = "Suicidios Totales")) +
+  scale_colour_manual("", 
+                      breaks = c("Renta Per Cápita", "Suicidios Totales"),
+                      values = c("Renta Per Cápita" = "blue", "Suicidios Totales" = "red")) +
+  labs(title = "Evolución de la Renta Per Cápita y Suicidios Totales (2000-2019)",
+       y = "Valor Total",
+       x = "Año") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+
+```
+
+```{r}
+
+# Instalar el paquete 'scales' si aún no está instalado
+if (!require(scales)) {
+  install.packages("scales")
+}
+
+# Cargar el paquete 'scales'
+library(scales)
+
+library(ggplot2)
+
+# Asumiendo que annual_summaries tiene las columnas Year, Total_GDP_Per_Capita, y Total_Suicides
+# Primero, normalizaremos los suicidios para que la escala sea comparable con la renta per cápita
+max_gdp <- max(annual_summaries$Total_GDP_Per_Capita, na.rm = TRUE)
+max_suicides <- max(annual_summaries$Total_Suicides, na.rm = TRUE)
+suicides_scale <- max_gdp / max_suicides
+
+# Crear el gráfico
+ggplot(data = annual_summaries) +
+  # Añadir las barras para la renta per cápita
+  geom_bar(aes(x = Year, y = Total_GDP_Per_Capita), stat = "identity", fill = "skyblue") +
+  # Añadir la línea para los suicidios, ajustando la escala
+  geom_line(aes(x = Year, y = Total_Suicides * suicides_scale), colour = "red", size = 1) +
+  scale_y_continuous(
+    name = "Renta Per Cápita",
+    sec.axis = sec_axis(~./suicides_scale, name = "Suicidios Totales (ajustados)"),
+    labels = comma  # Esto agregará comas a los números para facilitar la lectura
+  ) +
+  labs(title = "Evolución de la Renta Per Cápita y Suicidios Totales (2000-2019)",
+       x = "Año",
+       y = "Renta Per Cápita (USD)") +
+  theme_minimal() +
+  theme(legend.position = "none") # Ocultar leyenda si no es necesaria
+
+# Nota: Este código asume que los suicidios están en una escala mucho menor que la renta per cápita
+# y por eso los multiplica por un factor para llevarlos a una escala comparable visualmente.
+
+```
+```{r}
+# Calcula el factor de ajuste para los suicidios, para que su máximo sea similar al máximo de la renta per cápita
+factor_ajuste <- max(annual_summaries$Total_GDP_Per_Capita) / max(annual_summaries$Total_Suicides)
+
+# Crea el gráfico
+ggplot(annual_summaries, aes(x = Year)) +
+  geom_line(aes(y = Total_GDP_Per_Capita, colour = "Renta Per Cápita")) +
+  geom_line(aes(y = Total_Suicides * factor_ajuste, colour = "Suicidios Totales")) +
+  scale_y_continuous(name = "Renta Per Cápita",
+                     sec.axis = sec_axis(~./factor_ajuste, name="Suicidios Totales")) +
+  scale_colour_manual(values = c("Renta Per Cápita" = "blue", "Suicidios Totales" = "red")) +
+  labs(title = "Evolución de la Renta Per Cápita y Suicidios Totales (2000-2019)",
+       x = "Año") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+#Renta en Aumento: La renta per cápita generalmente ha ido en aumento, aunque tuvo una caída alrededor de 2009, probablemente debido a la crisis económica mundial.
+
+#Suicidios Estables: El número de suicidios parece mantenerse bastante estable a lo largo de los años, con ligeras subidas y bajadas.
+
+#Relación No Clara: No se ve una relación obvia entre la renta per cápita y los suicidios. Cuando la renta baja, no hay un aumento notable en los suicidios.Es posible que tras la crisis de 2008 las cifras de suicidios aumentaron en los años posteriores coincidiendo con una bajada en sus activos.
+
+#Factores Múltiples: Las variaciones año a año sugieren que hay muchos factores que afectan los suicidios, no solo la economía.
+
+#Cifras Ajustadas:Las cifras de suicidios están ajustadas para que se vean en la gráfica junto a la renta per cápita. No son los números reales sino que están escalados para comparar las tendencias.
