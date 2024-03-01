@@ -6,6 +6,128 @@ output: html_document
 ---
 
 ```{r}
+datosMH <- read.csv("data/2.globalTrendsinMentalHealth/Mental health Depression disorder Data2.csv")
+head(datosMH)
+```
+Para mantener una cohesión y una mejor organización del conjunto de datos, decidimos eliminar la columna "index" pues el entorno de programación ya tiene en cuenta una columna para el índice. 
+
+```{r}
+# Eliminación de la columna 'index'
+datosMH <- subset(datosMH, select = -index)
+```
+
+
+```{r}
+summary(datosMH)
+str(datosMH)
+```
+datosMH:
+
+index: Un índice numérico.
+Entity: El país o entidad asociada con los datos.
+Code: El código del país.
+Year: El año al que pertenecen los datos.
+Schizophrenia, Bipolar.disorders, Eating.disorders, Anxiety.disorders, Drug.use.disorders, Depression, Alcohol.use.disorders: Diferentes tipos de trastornos de salud mental y sus tasas correspondientes.
+
+Tamaño del conjunto: 108553
+
+```{r}
+missing_values_mh <- colSums(is.na(datosMH))
+print("Datos faltantes en datosMH:")
+print(missing_values_mh)
+```
+Como podemos observar, aparecen muchos valores nulos en las variables "Eating.disorders", "Anxiety.disorders", "Drug.use.disorders" "Depression" y "Alcohol.use.disorders" (casi el 80% de sus datos son nulos), sin embargo, en el resto de las variables no aparece ningún valor faltante. Analizando el fichero, nos hemos dado cuenta de que contiene un error en su composición pues parece ser que hay varios atributos que han sido insertados como filas a partir de la fila número 6469.
+
+```{r}
+datosMH1 <- datosMH[1:6468, ]
+datosMH2 <- datosMH[6469:54276, ]
+datosMH3 <- datosMH[54277:102084, ]
+datosMH4 <- datosMH[102085: nrow(datosMH), ]
+
+head(datosMH1)
+head(datosMH2)
+head(datosMH3)
+head(datosMH4)
+```
+
+
+```{r}
+#Preprocesamiento datosMH2
+colnames(datosMH2) <- datosMH2[1,]
+datosMH2 <- subset(datosMH2, select = -c(7:10))
+datosMH2 <- tail(datosMH2, -1)
+rownames(datosMH2) <- NULL
+
+#Preprocesamiento datosMH3
+colnames(datosMH3) <- datosMH3[1,]
+datosMH3 <- subset(datosMH3, select = -c(7:10))
+datosMH3 <- tail(datosMH3, -1)
+rownames(datosMH3) <- NULL
+
+#Preprocesamiento datosMH4
+colnames(datosMH4) <- datosMH4[1,]
+datosMH4 <- subset(datosMH4, select = -c(5:10))
+datosMH4 <- tail(datosMH4, -1)
+rownames(datosMH4) <- NULL
+
+head(datosMH1)
+head(datosMH2)
+head(datosMH3)
+head(datosMH4)
+```
+En esta etapa, acabamos de obtener cuatro datasets a partir de uno proporcionado y hemos realizado un proceso de preprocesamiento de tres de los cuatro conjuntos de datos resultantes, datosMH2, datosMH3, y datosMH4, obtenidos a partir del conjunto de datos original (datosMH). Primero, se renombran las columnas de cada conjunto de datos utilizando los valores de la primera fila como nombres de columna. Luego, se eliminan las columnas que contenían todas las variables nulas de cada conjunto de datos (debido a la superposición de los cuatro datasets en uno). Posteriormente, se elimina la primera fila de cada conjunto de datos para asegurar la coherencia estructural y se restablecen los índices de fila para iniciar desde 1, lo que facilita el acceso y manejo de los datos en análisis posteriores. Continuamos realizando un análisis básico de cada conjunto de datos obtenido, pero para ello, antes debemos pasar cada variable a su tipo correspondiente, por ejemplo, "Year" aparece como "character" y debe ser de tipo "integer", o, todas las variables que representan un tipo de trastorno de salud mental deben ser de tipo "double" en vez de tipo "character" como aparecen algunas.
+
+
+
+
+CAMBIAR TIPOS DE LAS VARIABLES??
+
+
+
+
+```{r}
+print("Resumen de datosMH1")
+summary(datosMH1)
+print("Resumen de datosMH2")
+summary(datosMH2)
+print("Resumen de datosMH3")
+summary(datosMH3)
+print("Resumen de datosMH4")
+summary(datosMH4)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+También, hemos observado que la columna "Year"es un objetos de tipo "Character" y es necesario que la variable "Year" sea de tipo "Integer" y que el resto sea de tipo "Double", pues representan porcentajes, para que el sistema entienda bien dichos datos. 
+
+
+```{r}
+# Columna 'Year' a tipo Integer y el resto a Double
+datosMH$Year <- as.integer(datosMH$Year)
 
 ```
+
+
 
