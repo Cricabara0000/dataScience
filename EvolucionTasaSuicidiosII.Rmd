@@ -1,0 +1,148 @@
+---
+title: "EvoluciónTasaSuicidios"
+author: "Jorge Sillero"
+date: "2024-02-24"
+output: html_document
+---
+
+# Evolución Tasa de Suicidios por País
+
+## Caga del dataset
+
+```{r}
+suicide_data <- read.csv("C:/Users/Miguel Matamoros/Downloads/dataScience-main/dataScience-main/data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
+
+head(data)
+
+summary(data)
+```
+```{r}
+suicide_data_total <- suicide_data %>% filter(DIM_SEX == "Total")
+```
+
+```{r}
+library(countrycode)
+
+suicide_data_total$iso3 <- countrycode(suicide_data_total$GEO_NAME_SHORT, "country.name", "iso3c")
+head(suicide_data_total)
+```
+```{r}
+library(plotly)
+
+# Asegúrate de tener la columna 'iso3' con los códigos ISO 3166-1 alpha-3 y 
+# que 'suicide_data_total' contiene solo las filas donde DIM_SEX es 'Total'.
+
+# Crear el mapa interactivo con animación basada en el año
+fig <- plot_geo(suicide_data_total, locations = ~iso3, color = ~VALUE_NUMERIC,
+                animation_frame = ~DIM_TIME, text = ~GEO_NAME_SHORT,
+                colors = "Blues") %>%
+  colorbar(title = "Tasa de Suicidio") %>%
+  layout(title = 'Tasa de Suicidio por País y Año',
+         geo = list(showframe = FALSE, showcoastlines = TRUE, projection = list(type = 'natural earth')))
+
+# Mostrar el mapa
+fig
+
+
+```
+```{r}
+library(plotly)
+
+# Asumiendo que 'suicide_data_total' ya está filtrado para incluir solo las filas donde DIM_SEX es 'Total'.
+# También, asegurándose de que 'iso3' y 'DIM_TIME' están correctamente definidos en tu dataframe.
+
+# Primero, convertir DIM_TIME a caracter para asegurarnos de que se maneje correctamente como una categoría
+suicide_data_total$DIM_TIME <- as.character(suicide_data_total$DIM_TIME)
+
+# Crear el mapa interactivo con la barra deslizante para cambiar el año
+fig <- plot_geo(suicide_data_total, locations = ~iso3, color = ~VALUE_NUMERIC,
+                animation_frame = ~DIM_TIME, text = ~paste(GEO_NAME_SHORT, ": ", VALUE_NUMERIC),
+                colors = "Blues") %>%
+  colorbar(title = "Tasa de Suicidio") %>%
+  layout(title = 'Tasa de Suicidio por País y Año',
+         geo = list(showframe = FALSE, showcoastlines = TRUE, projection = list(type = 'natural earth'))) 
+
+# Mostrar el mapa
+fig
+
+
+```
+```{r}
+library(shiny)
+library(plotly)
+library(dplyr)
+
+suicide_data_total$DIM_TIME <- as.character(suicide_data_total$DIM_TIME)
+
+fig <- plot_geo(suicide_data_total, locations = ~iso3, color = ~VALUE_NUMERIC,
+                animation_frame = ~DIM_TIME, text = ~paste(GEO_NAME_SHORT, ": ", VALUE_NUMERIC),
+                colors = "Blues") %>%
+  colorbar(title = "Tasa de Suicidio") %>%
+  layout(title = 'Tasa de Suicidio por País y Año',
+         geo = list(showframe = FALSE, showcoastlines = TRUE, projection = list(type = 'natural earth'))) 
+
+# UI
+ui <- fluidPage(
+  titlePanel("Mapa Interactivo de Tasa de Suicidios por País"),
+  plotlyOutput("suicideMap")
+)
+
+# Server
+server <- function(input, output) {
+  output$suicideMap <- renderPlotly({
+    fig
+  })
+}
+
+# Ejecuta la aplicación
+shinyApp(ui = ui, server = server)
+```
+```{r}
+library(shiny)
+library(plotly)
+library(dplyr)
+
+suicide_data_total$DIM_TIME <- as.character(suicide_data_total$DIM_TIME)
+
+# UI
+ui <- fluidPage(
+  titlePanel("Mapa Interactivo de Tasa de Suicidios por País"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("yearSlider",
+                  "Año:",
+                  min = min(as.numeric(suicide_data_total$DIM_TIME)),
+                  max = max(as.numeric(suicide_data_total$DIM_TIME)),
+                  value = min(as.numeric(suicide_data_total$DIM_TIME)),
+                  step = 1,
+                  animate = TRUE)
+    ),
+    mainPanel(
+      plotlyOutput("suicideMap")
+    )
+  )
+)
+
+# Server
+server <- function(input, output) {
+  output$suicideMap <- renderPlotly({
+    # Filtrar datos basados en el año seleccionado
+    filtered_data <- suicide_data_total %>%
+      filter(DIM_TIME == input$yearSlider)
+    
+    # Crear el mapa plotly con datos filtrados
+    fig <- plot_geo(filtered_data, locations = ~iso3, color = ~VALUE_NUMERIC,
+                    text = ~paste(GEO_NAME_SHORT, ": ", VALUE_NUMERIC),
+                    colors = "Blues") %>%
+      colorbar(title = "Tasa de Suicidio") %>%
+      layout(title = paste('Tasa de Suicidio por País en el Año', input$yearSlider),
+             geo = list(showframe = FALSE, showcoastlines = TRUE, projection = list(type = 'natural earth')))
+    
+    fig
+  })
+}
+
+# Ejecuta la aplicación
+shinyApp(ui = ui, server = server)
+```
+
