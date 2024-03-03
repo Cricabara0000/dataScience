@@ -109,23 +109,33 @@ summary(dataMH)
 data_suicide <-  read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
 library(dplyr)
 data_suicide <- data_suicide %>%
-  rename(Entity = GEO_NAME_SHORT, Year = DIM_TIME)
+  rename(Entity = GEO_NAME_SHORT, Year = DIM_TIME, SuicideRate = VALUE_NUMERIC)
 head(data_suicide)
 ```
 
 ```{r}
 dataMH <- merge(datosMH1, data_suicide, by = c("Entity","Year"))
 dataMH <- dataMH %>% filter(DIM_SEX == "Total")
+#write.csv(dataMH, file = "data/dataMH.csv", row.names = FALSE)
 head(dataMH)
 ```
 
+
+```{r}
+missing_values_mh <- colSums(is.na(dataMH))
+print("Datos faltantes en datosMH:")
+print(missing_values_mh)
+```
 
 ```{r}
 dataMH$Year <- as.integer(dataMH$Year)
 dataMH$Schizophrenia <- as.double(dataMH$Schizophrenia)
 dataMH$Bipolar.disorders <- as.double(dataMH$Bipolar.disorders)
 dataMH$Eating.disorders <- as.double(dataMH$Eating.disorders)
+```
 
+
+```{r}
 dataMH_disorders <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders","Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders")]
 
 head(dataMH_disorders)
@@ -133,20 +143,32 @@ summary(dataMH_disorders)
 ```
 
 ```{r}
-missing_values_mh <- colSums(is.na(dataMH_disorders))
+missing_values_mh_d <- colSums(is.na(dataMH_disorders))
 print("Datos faltantes en datosMH:")
-print(missing_values_mh)
+print(missing_values_mh_d)
 ```
 
 ```{r}
 library(corrplot)
-correlation_matrix <- cor(dataMH_disorders, use = "pairwise.complete.obs")
+correlation_matrix_disorders <- cor(dataMH_disorders, use = "pairwise.complete.obs")
 plot.new()
-corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
+corrplot(correlation_matrix_disorders, method = "color", type = "upper", order = "hclust", 
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
 
 ```{r}
+dataMH_res <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
+                                     "Anxiety.disorders", "Drug.use.disorders", "Depression", 
+                                     "Alcohol.use.disorders", "SuicideRate")]
+head(dataMH_res)
+```
 
+
+
+```{r}
+correlation_matrix <- cor(dataMH_res, use = "pairwise.complete.obs")
+plot.new()
+corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
+         tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
 
