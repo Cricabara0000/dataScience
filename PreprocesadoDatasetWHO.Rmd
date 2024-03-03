@@ -106,6 +106,21 @@ summary(dataMH)
 ```
 
 ```{r}
+data_suicide <-  read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
+library(dplyr)
+data_suicide <- data_suicide %>%
+  rename(Entity = GEO_NAME_SHORT, Year = DIM_TIME)
+head(data_suicide)
+```
+
+```{r}
+dataMH <- merge(datosMH1, data_suicide, by = c("Entity","Year"))
+dataMH <- dataMH %>% filter(DIM_SEX == "Total")
+head(dataMH)
+```
+
+
+```{r}
 dataMH$Year <- as.integer(dataMH$Year)
 dataMH$Schizophrenia <- as.double(dataMH$Schizophrenia)
 dataMH$Bipolar.disorders <- as.double(dataMH$Bipolar.disorders)
