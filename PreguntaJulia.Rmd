@@ -1,0 +1,21 @@
+---
+title: "PreguntaJulia"
+author: "Julia"
+date: "2024-03-06"
+output: html_document
+---
+
+```{r}
+data <- read.csv("data/dataMH.csv")
+head(data)
+```
+
+```{r}
+data <- subset(data, select = -c(Code, DIM_SEX))
+head(data)
+
+```
+
+```{r}
+
+```
