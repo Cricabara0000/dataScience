@@ -10,24 +10,32 @@ output: html_document
 ## Caga del dataset
 
 ```{r}
-suicide_data <- read.csv("C:/Users/Miguel Matamoros/Downloads/dataScience-main/dataScience-main/data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
-
-head(data)
-
-summary(data)
+library(shiny)
+library(plotly)
+library(dplyr)
+library(countrycode)
 ```
+
+```{r}
+suicide_data <- read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
+
+head(suicide_data)
+
+summary(suicide_data)
+```
+
 ```{r}
 suicide_data_total <- suicide_data %>% filter(DIM_SEX == "Total")
 ```
 
 ```{r}
-library(countrycode)
+
 
 suicide_data_total$iso3 <- countrycode(suicide_data_total$GEO_NAME_SHORT, "country.name", "iso3c")
 head(suicide_data_total)
 ```
+
 ```{r}
-library(plotly)
 
 # Asegúrate de tener la columna 'iso3' con los códigos ISO 3166-1 alpha-3 y 
 # que 'suicide_data_total' contiene solo las filas donde DIM_SEX es 'Total'.
@@ -45,8 +53,9 @@ fig
 
 
 ```
+
 ```{r}
-library(plotly)
+
 
 # Asumiendo que 'suicide_data_total' ya está filtrado para incluir solo las filas donde DIM_SEX es 'Total'.
 # También, asegurándose de que 'iso3' y 'DIM_TIME' están correctamente definidos en tu dataframe.
@@ -67,10 +76,9 @@ fig
 
 
 ```
+
 ```{r}
-library(shiny)
-library(plotly)
-library(dplyr)
+
 
 suicide_data_total$DIM_TIME <- as.character(suicide_data_total$DIM_TIME)
 
@@ -97,10 +105,9 @@ server <- function(input, output) {
 # Ejecuta la aplicación
 shinyApp(ui = ui, server = server)
 ```
+
 ```{r}
-library(shiny)
-library(plotly)
-library(dplyr)
+
 
 suicide_data_total$DIM_TIME <- as.character(suicide_data_total$DIM_TIME)
 
@@ -145,4 +152,3 @@ server <- function(input, output) {
 # Ejecuta la aplicación
 shinyApp(ui = ui, server = server)
 ```
-

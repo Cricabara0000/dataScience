@@ -7,27 +7,134 @@ output: html_document
 
 # ¿Hay alguna forma de agrupar los paises en base a la tasa de suicidio y el gasto en salud?
 
-## Unir datasets
+```{r}
+library(tidyr)
+library(dplyr)
+library(cluster)
+library(factoextra)
+library(ggplot2)
+library(plotly)
+```
+
+## Lectura y fusión de datasets
 
 ```{r}
 suicidios <- read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
 
-gasto <- read.csv("data/3.spendinhealth/datos_filtrados.csv")
+salud <- read.csv("data/3.spendinhealth/datos_filtrados.csv")
+
+```
+
+### Ejercicio 1 - CLUSTERING SOLO CON AÑO, TOTAL, MALE, FEMALE
+
+Voy a intentar realizar el clustering basándome en las columnas tasa, male, female, total, dim_time
+
+```{r}
+df_suicidios <- suicidios %>%
+  mutate(DIM_SEX = factor(DIM_SEX, levels = c("Total", "Male", "Female"))) %>%
+  pivot_wider(names_from = DIM_SEX, values_from = VALUE_NUMERIC) %>%
+  select(GEO_NAME_SHORT, DIM_TIME, Total, Male, Female)
+
+# Si es necesario, puedes renombrar las columnas
+colnames(nuevo_dataset) <- c("GEO_NAME_SHORT", "DIM_TIME", "TOTAL", "MALE", "FEMALE")
+
 ```
 
 ```{r}
-# Carga la biblioteca dplyr
-library(dplyr)
+num_valores_faltantes <- colSums(is.na(df_suicidios))
+
+# Muestra el resultado
+print(num_valores_faltantes)
+```
+
+```{r}
+# Extraer el primer elemento de cada lista en la columna Total
+df_suicidios$Total <- sapply(df_suicidios$Total, function(x) x[1])
+df_suicidios$Male <- sapply(df_suicidios$Male, function(x) x[1])
+df_suicidios$Female <- sapply(df_suicidios$Female, function(x) x[1])
+
+# Ahora, puedes convertir la columna Total a tipo numérico
+df_suicidios$Total <- as.numeric(df_suicidios$Total)
+
+# Luego, puedes proceder con la creación de datos_clustering
+datos_clustering <- df_suicidios[, c("Male", "Female", "Total", "DIM_TIME")]
+
+# Asegúrate de que las columnas relevantes sean de tipo numérico
+datos_clustering$Total <- as.numeric(datos_clustering$Total)
+datos_clustering$Male <- as.numeric(datos_clustering$Male)
+datos_clustering$Female <- as.numeric(datos_clustering$Female)
+
+```
+
+```{r}
+# Selecciona las columnas relevantes para el clustering
+datos_clustering <- df_suicidios[, c("Male", "Female", "Total", "DIM_TIME")]
+
+# Calcula la suma de cuadrados dentro (WSS) para diferentes números de clusters
+wss <- c()
+for (i in 1:10) {
+  kmeans_model <- kmeans(datos_clustering, centers = i, nstart = 20)
+  wss[i] <- kmeans_model$tot.withinss
+}
+
+# Grafica la suma de cuadrados dentro en función del número de clusters
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Número de Clusters", ylab = "Suma de Cuadrados Dentro (WSS)",
+     main = "Método del Codo")
+
+# Agrega líneas y etiquetas
+abline(v = which.min(wss), col = "red", lty = 2)
+text(which.min(wss), min(wss), "Punto de Codo", pos = 1, col = "red")
+```
+
+```{r}
+set.seed(123)  # Para reproducibilidad
+kmeans_result <- kmeans(datos_clustering, centers = 2, nstart = 20)
+
+# Añade la información del cluster al conjunto de datos original
+df_suicidios$Cluster <- as.factor(kmeans_result$cluster)
+
+# Muestra el resultado
+head(df_suicidios)
+```
+
+```{r}
+fviz_cluster(kmeans_result, geom = "point", data = datos_clustering, title = "Clustering de Tasa de Suicidios y Gasto en Salud")
+```
+
+```{r}
+# Divide el dataframe en una lista de dataframes basada en la columna Cluster
+lista_dataframes <- split(df_suicidios, df_suicidios$Cluster)
+
+# Crear dataframes individuales para cada cluster
+for (i in seq_along(lista_dataframes)) {
+  # Usa paste para generar nombres únicos para cada dataframe
+  assign(paste("df_cluster", i, sep = ""), lista_dataframes[[i]])
+}
+```
+
+```{r}
+summary(df_cluster1)
+```
+
+```{r}
+summary(df_cluster2)
+```
+
+### Ejercicio 2
+
+```{r}
+
 
 # Encuentra países en df1 que no están en df2
-countries_not_in_gasto <- anti_join(suicidios, gasto, by = "GEO_NAME_SHORT")
+countries_not_in_gasto <- anti_join(suicidios, salud, by = "GEO_NAME_SHORT")
 
 # Encuentra países en df2 que no están en df1
-countries_not_in_suicidios <- anti_join(gasto, suicidios, by = "GEO_NAME_SHORT")
+countries_not_in_suicidios <- anti_join(salud, suicidios, by = "GEO_NAME_SHORT")
 
-
+cat('Paises que no están en gasto')
 unique(countries_not_in_gasto$GEO_NAME_SHORT)
-
+cat('Paises que no están en suicidios')
 unique(countries_not_in_suicidios$GEO_NAME_SHORT)
 ```
 
@@ -36,15 +143,13 @@ unique(countries_not_in_suicidios$GEO_NAME_SHORT)
 suicidios_total <- subset(suicidios, DIM_SEX == "Total")
 
 colnames(suicidios_total)[4] <- "TASA_SUICIDIOS"
-colnames(gasto)[3] <- "GASTO_SALUD"
+colnames(salud)[3] <- "GASTO_SALUD"
 
 # Unir los datasets por "GEO_NAME_SHORT" y "DIM_TIME"
-merged_data <- merge(suicidios_total, gasto, by = c("GEO_NAME_SHORT", "DIM_TIME"))
+merged_data <- merge(suicidios_total, salud, by = c("GEO_NAME_SHORT", "DIM_TIME"))
 
 head(merged_data)
 ```
-
-Añadir dataset de enfermedades mentales también
 
 Agrupar por país y hacer la media de los valores de las variables
 
@@ -65,27 +170,84 @@ head(df)
 ```
 
 ```{r}
-library(factoextra)
-
 # Selecciona las columnas relevantes para el clustering
-datos_clustering <- df[, c("SUICIDIOS", "GASTO_SALUD")]
+datos_clustering <- merged_data[, c("TASA_SUICIDIOS", "GASTO_SALUD", "DIM_TIME")]
+# Calcula la suma de cuadrados dentro (WSS) para diferentes números de clusters
+wss <- c()
+for (i in 1:10) {
+  kmeans_model <- kmeans(datos_clustering, centers = i, nstart = 20)
+  wss[i] <- kmeans_model$tot.withinss
+}
+
+# Grafica la suma de cuadrados dentro en función del número de clusters
+plot(1:10, wss, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Número de Clusters", ylab = "Suma de Cuadrados Dentro (WSS)",
+     main = "Método del Codo")
+
+# Agrega líneas y etiquetas
+abline(v = which.min(wss), col = "red", lty = 2)
+text(which.min(wss), min(wss), "Punto de Codo", pos = 1, col = "red")
+```
+
+```{r}
+
+
+# Calcula la puntuación de la Silueta para diferentes números de clusters
+silhouette_scores <- c()
+for (i in 2:10) {
+  kmeans_model <- kmeans(datos_clustering, centers = i, nstart = 20)
+  silhouette_scores[i] <- silhouette(kmeans_model$cluster, dist(datos_clustering))
+}
+
+# Grafica la puntuación de la Silueta en función del número de clusters
+plot(2:10, silhouette_scores[2:10], type = "b", pch = 19, frame = FALSE, 
+     xlab = "Número de Clusters", ylab = "Puntuación de la Silueta",
+     main = "Método de la Silueta")
+
+# Encuentra el número óptimo de clusters
+optimal_clusters <- which.max(silhouette_scores)
+cat("Número óptimo de clusters según la Silueta:", optimal_clusters, "\n")
+
+```
+
+```{r}
 
 # Realiza el clustering utilizando k-means con un número arbitrario de clusters (en este caso, 3)
 set.seed(123)  # Para reproducibilidad
 kmeans_result <- kmeans(datos_clustering, centers = 3, nstart = 20)
 
 # Añade la información del cluster al conjunto de datos original
-df$Cluster <- as.factor(kmeans_result$cluster)
+merged_data$Cluster <- as.factor(kmeans_result$cluster)
 
 # Muestra el resultado
-head(df)
+head(merged_data)
 ```
 
 ```{r}
 # Visualización de los clusters
-fviz_cluster(kmeans_result, geom = "point", data = datos_clustering, 
-             title = "Clustering de Tasa de Suicidios y Gasto en Salud")
+fviz_cluster(kmeans_result, geom = "point", data = datos_clustering, mapping.data = 2:3, title = "Clustering de Tasa de Suicidios y Gasto en Salud")
+```
 
+```{r}
+
+
+# Crear el gráfico de dispersión inicial
+p <- ggplot(merged_data, aes(x = GASTO_SALUD, y = TASA_SUICIDIOS, color = factor(Cluster))) +
+  geom_point() +
+  labs(title = "Relación entre Gasto en Salud y Tasa de Suicidios",
+       x = "Gasto en Salud",
+       y = "Tasa de Suicidios",
+       color = "Cluster")
+
+# Convertir el gráfico de ggplot2 a un gráfico interactivo de plotly
+plotly_graph <- ggplotly(p)
+
+# Mostrar la visualización interactiva
+plotly_graph
+
+```
+
+```{r}
 # Añadir información de clusters al conjunto de datos original
 df$Cluster <- as.factor(kmeans_result$cluster)
 
