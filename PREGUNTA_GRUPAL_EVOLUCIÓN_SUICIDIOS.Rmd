@@ -1,0 +1,124 @@
+---
+title: "GRUPAL SUICIDIOS"
+author: "Jorge Sillero"
+date: "2024-02-24"
+output: html_document
+---
+
+# ¿Cómo ha evolucionado la tasa de suicidios de todos los paises a lo largo de los últimos años?
+
+Librerías
+
+```{r}
+library(shiny)
+library(plotly)
+library(dplyr)
+library(countrycode)
+```
+
+## Lectura del Dataset
+
+```{r}
+suicide_data <- read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
+
+head(suicide_data)
+
+summary(suicide_data)
+```
+
+Este archivo CSV contiene los datos de las tasa de suicidio de cada país desde el 2000 hasta el 2019. Previo a esta lectura, ya que es un dataset que se ha usado para las preguntas grupales, se ha realizado un preprocesado (Documento PreprocesadoDatasetSuicidios), que básicamente consistía en eliminar diferentes columnas que no nos aportaban valor para nuestros experimentos.
+
+Los atributos que contiene este dataset son:
+
+-   GEO_NAME_SHORT: nombre de cada país.
+
+-   DIM_TIME: año.
+
+-   DIM_SEX: subgrupo del país según el sexo. (Total, Male, Female)
+
+-   VALUE_NUMERIC: tasa de suicidio por cada 100.000 habitantes.
+
+Para nuestro experimento, únicamente necesitamos la tasa de suicidios total del país, no por los diferentes sexos. También eliminamos el año 2019 porque presenta unos datos que no son realistas comprobando con otras fuentes que representan datos similares.
+
+```{r}
+suicide_data_total <- suicide_data %>% filter(DIM_SEX == "Total"& DIM_TIME != 2019)
+```
+
+## Visualizaciones
+
+En primer lugar, para tener una idea de como ha evolucionado la tasa de suicidios, vamos a crear una gráfica que represente un histograma con la media de todos los paises.
+
+```{r}
+# Calcular la media de los valores de suicidios para cada año
+datos_globales <- aggregate(VALUE_NUMERIC ~ DIM_TIME, data = suicide_data_total, mean)
+
+# Crear un gráfico de líneas utilizando ggplot
+ggplot(datos_globales, aes(x = DIM_TIME, y = VALUE_NUMERIC)) +
+  geom_line() +
+  labs(title = "Evolución del número medio de suicidios por año en el mundo (DIM_SEX = Total)",
+       x = "Año",
+       y = "Número medio de suicidios") +
+  theme_minimal()
+```
+
+Como se puede observar, y para nuestra sorpresa y agrado, la tasa de suicidios ha ido decrementado en los últimos años significativamente, teniendo algunos picos, pero manteniendo una bajada constante.
+
+Una vez hemos visto esta gráfica, vamos a mostrar la evolución por cada país gracias a una visualización iteractiva.
+
+Para ello, es necesario en primer lugar añadir una columna que contenga el código de cada país segun el ISO3
+
+```{r}
+suicide_data_total$iso3 <- countrycode(suicide_data_total$GEO_NAME_SHORT, "country.name", "iso3c")
+head(suicide_data_total)
+```
+
+Y, por último, realizamos la visualización interactiva.
+
+```{r}
+suicide_data_total$DIM_TIME <- as.character(suicide_data_total$DIM_TIME)
+
+# UI
+ui <- fluidPage(
+  titlePanel("Mapa Interactivo de Tasa de Suicidios por País"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("yearSlider",
+                  "Año:",
+                  min = min(as.numeric(suicide_data_total$DIM_TIME)),
+                  max = max(as.numeric(suicide_data_total$DIM_TIME)),
+                  value = min(as.numeric(suicide_data_total$DIM_TIME)),
+                  step = 1,
+                  animate = TRUE)
+    ),
+    mainPanel(
+      plotlyOutput("suicideMap")
+    )
+  )
+)
+
+# Server
+server <- function(input, output) {
+  output$suicideMap <- renderPlotly({
+    # Filtrar datos basados en el año seleccionado
+    filtered_data <- suicide_data_total %>%
+      filter(DIM_TIME == input$yearSlider)
+    
+    # Crear el mapa plotly con datos filtrados
+    fig <- plot_geo(filtered_data, locations = ~iso3, color = ~VALUE_NUMERIC,
+                    text = ~paste(GEO_NAME_SHORT, ": ", VALUE_NUMERIC),
+                    colors = "Blues") %>%
+      colorbar(title = "Tasa de Suicidio", limits = c(0, 50)) %>%
+      layout(title = paste('Tasa de Suicidio por País en el Año', input$yearSlider),
+             geo = list(showframe = FALSE, showcoastlines = TRUE, projection = list(type = 'natural earth')))
+    
+    fig
+  })
+}
+
+# Ejecuta la aplicación
+shinyApp(ui = ui, server = server)
+```
+
+Se puede observar claramente, que conforme pasan los años, sobre todo en Europa, la tasa de suicidios ha ido disminuyendo notablemente. Mientras tanto, en otros paises, en los que la tasa era baja, se ha mantenido igual, como pueden ser la mayoría de los paises de África, Sudamérica y el Sur de Asia. Rusia también destaca por su alta tasa.
+
+Las conclusiones que sacamos observando el gráfico es que los paises cuya tasa de suicidios es más elevada son los países más desarrollados, esto se refleja también en el Sur de África, que tiene una tasa de suicidios mucho mayor que el resto del continente.

@@ -25,7 +25,7 @@ summary(suicide_data)
 ```
 
 ```{r}
-suicide_data_total <- suicide_data %>% filter(DIM_SEX == "Total")
+suicide_data_total <- suicide_data %>% filter(DIM_SEX == "Total"& DIM_TIME != 2019)
 ```
 
 ```{r}
@@ -141,7 +141,7 @@ server <- function(input, output) {
     fig <- plot_geo(filtered_data, locations = ~iso3, color = ~VALUE_NUMERIC,
                     text = ~paste(GEO_NAME_SHORT, ": ", VALUE_NUMERIC),
                     colors = "Blues") %>%
-      colorbar(title = "Tasa de Suicidio") %>%
+      colorbar(title = "Tasa de Suicidio", limits = c(0, 50)) %>%
       layout(title = paste('Tasa de Suicidio por País en el Año', input$yearSlider),
              geo = list(showframe = FALSE, showcoastlines = TRUE, projection = list(type = 'natural earth')))
     
