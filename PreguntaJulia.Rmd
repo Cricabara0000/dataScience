@@ -5,17 +5,130 @@ date: "2024-03-06"
 output: html_document
 ---
 
+Lectura del dataset elegido:
+
 ```{r}
 data <- read.csv("data/dataMH.csv")
 head(data)
 ```
 
+Elimino las columnas con valores repetidos que no me aportan información:
+
 ```{r}
 data <- subset(data, select = -c(Code, DIM_SEX))
 head(data)
+```
 
+Cálculo de la correlación de las distintas variables, con el fin de descubrir cuales están más relacionadas con la tasa de suicidios.
+
+```{r}
+library(dplyr)
+library(corrplot)
+
+# Cambia el nombre de la columna
+data <- data %>% rename(SuicideRate = VALUE_NUMERIC)
+
+# Selecciona las columnas relevantes
+data_total <- data[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", "Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders", "SuicideRate")]
+
+# Calcula la matriz de correlación
+correlation_matrix <- cor(data_total, use = "pairwise.complete.obs")
+
+# Visualización con corrplot
+corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
+         tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
+```
+
+Contraste de hipótesis de las variables de mayor correlación con la tasa de suicidios, para comprobar la relación entre ambas variables:
+
+En primer lugar, realizo el contraste entre la tasa de suicidios y el alcohlísmo para confirmar que la correlación de 0.47 ontenida en la gráfica anterior es correcta.
+
+```{r}
+# Suponiendo que tu conjunto de datos se llama 'data'
+correlation_alcohol_suicide <- cor(data$Alcohol.use.disorders, data$SuicideRate, use = "complete.obs")
+
+# Realiza un contraste de hipótesis para la correlación
+test_result <- cor.test(data$Alcohol.use.disorders, data$SuicideRate, method = "pearson")
+
+# Imprime el resultado del contraste de hipótesis
+print(test_result)
+```
+
+Como podemos observar, tienen una correlación significativa y positiva entre sí:
+
+1.  **Valor p:** El valor p es muy pequeño (menor que cualquier nivel de significancia común, como 0.05), lo que indica que hay evidencia estadística significativa para rechazar la hipótesis nula. En otras palabras, hay una correlación significativa entre "Alcohol.use.disorders" y "SuicideRate".
+
+2.  **Dirección de la correlación:** Dado que el intervalo de confianza no incluye el valor 0 y el valor de correlación es positivo (0.4678559), puedes concluir que hay una correlación positiva entre las dos variables. A medida que aumenta la tasa de trastornos por uso de alcohol, tiende a aumentar también la tasa de suicidio.
+
+3.  **Intervalo de confianza:** El intervalo de confianza al 95% indica que puedes estar 95% seguro de que la verdadera correlación está dentro del rango del 0.4388302 al 0.4959063.
+
+En segundo lugar, realizo el contraste entre la tasa de suicidios y la depresión para confirmar que la correlación de 0.32 obtenida en la gráfica de correlación anterior es correcta.
+
+```{r}
+# Suponiendo que tu conjunto de datos se llama 'data'
+
+# Realiza un contraste de hipótesis para la correlación entre "Depression" y "SuicideRate"
+test_result_depression_suicide <- cor.test(data$Depression, data$SuicideRate, method = "pearson")
+
+# Imprime el resultado del contraste de hipótesis
+print(test_result_depression_suicide)
+```
+
+Como podemos observar, tienen una correlación significativa y positiva entre sí:
+
+1.  **Valor p:** El valor p es muy pequeño (menor que cualquier nivel de significancia común, como 0.05), lo que indica que hay evidencia estadística significativa para rechazar la hipótesis nula. En otras palabras, hay una correlación significativa entre "Depression" y "SuicideRate".
+
+2.  **Dirección de la correlación:** Dado que el intervalo de confianza no incluye el valor 0 y el valor de correlación es positivo (0.320269), puedes concluir que hay una correlación positiva entre las dos variables. A medida que aumenta la variable "Depression", tiende a aumentar también la tasa de suicidio.
+
+3.  **Intervalo de confianza:** El intervalo de confianza al 95% indica que puedes estar 95% seguro de que la verdadera correlación está dentro del rango del 0.2871029 al 0.3526682.
+
+Es cierto, que la correlación no implica causalidad, por tanto hay que tener en cuenta que estos resultados son los obtenidos para este dataset en concreto, podrían variar en algún otro dataset.
+
+```{r}
+# Suponiendo que ya tienes un conjunto de datos llamado 'data'
+# Y que deseas crear un nuevo dataset con las columnas específicas
+
+# Selecciona las columnas necesarias
+nuevo_dataset <- data[, c("Year", "Depression", "Alcohol.use.disorders", "SuicideRate")]
+
+# Muestra las primeras filas del nuevo dataset
+head(nuevo_dataset)
 ```
 
 ```{r}
+# Suponiendo que ya tienes un conjunto de datos llamado 'data'
 
+library(dplyr)
+
+# Agrupa por año y calcula la media para cada variable
+nuevo_dataset_agrupado <- data %>%
+  group_by(Year) %>%
+  summarise(
+    Media_Depression = mean(Depression, na.rm = TRUE),
+    Media_Alcohol_use_disorders = mean(Alcohol.use.disorders, na.rm = TRUE),
+    Media_SuicideRate = mean(SuicideRate, na.rm = TRUE)
+  )
+
+# Muestra las primeras filas del nuevo dataset agrupado
+head(nuevo_dataset_agrupado)
+```
+
+```{r}
+# Suponiendo que ya tienes un conjunto de datos llamado 'data'
+# Y que las columnas son numéricas
+
+library(ggplot2)
+
+# Crea un gráfico de caja para cada variable por año
+grafico_caja <- ggplot(data, aes(x = as.factor(Year))) +
+  geom_boxplot(aes(y = Depression), fill = "blue", alpha = 0.7) +
+  geom_boxplot(aes(y = Alcohol.use.disorders), fill = "green", alpha = 0.7) +
+  geom_boxplot(aes(y = SuicideRate), fill = "red", alpha = 0.7) +
+  labs(title = "Distribución de Depression, Alcohol.use.disorders y SuicideRate por año",
+       x = "Año",
+       y = "Valor") +
+  scale_fill_manual(values = c("blue", "green", "red"))
+
+# Muestra el gráfico de caja
+print(grafico_caja)
 ```
