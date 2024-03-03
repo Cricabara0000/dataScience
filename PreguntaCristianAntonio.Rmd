@@ -1,0 +1,64 @@
+---
+title: "PreguntaCristianAntonio"
+author: "ccabello"
+date: "2024-03-03"
+output: html_document
+---
+
+```{r}
+dataMH1 <- read.csv("data/datosMH1.csv")
+dataMH2 <- read.csv("data/datosMH2.csv")
+dataMH3 <- read.csv("data/datosMH3.csv")
+dataMH4 <- read.csv("data/datosMH4.csv")
+
+head(datosMH1)
+head(datosMH2)
+head(datosMH3)
+head(datosMH4)
+```
+```{r}
+dff <- merge(datosMH1, datosMH4, by = c("Entity","Year"))
+dff <- dff[3137: nrow(dff), ]
+rownames(dff) <- NULL
+dff1 <- merge(datosMH2, datosMH3, by = c("Entity", "Year"))
+dff1 <- dff1[3137: nrow(dff), ]
+rownames(dff1) <- NULL
+dataMH <- merge(dff, dff1, by = c("Entity", "Year"))
+summary(dataMH)
+```
+
+```{r}
+dataMH$Year <- as.integer(dataMH$Year)
+dataMH$Population <- as.integer(dataMH$Population)
+dataMH$Schizophrenia <- as.double(dataMH$Schizophrenia)
+dataMH$Bipolar.disorders <- as.double(dataMH$Bipolar.disorders)
+dataMH$Eating.disorders <- as.double(dataMH$Eating.disorders)
+dataMH$`Prevalence in males (%)` <- as.double(dataMH$`Prevalence in males (%)`)
+dataMH$`Prevalence in females (%)` <- as.double(dataMH$`Prevalence in females (%)`)
+dataMH$`Suicide rate (deaths per 100000 individuals)` <- as.double(dataMH$`Suicide rate (deaths per 100000 individuals)`)
+dataMH$`Depressive disorder rates (number suffering per 100000)` <- as.double(dataMH$`Depressive disorder rates (number suffering per 100000)`)
+dataMH$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`<- as.double(dataMH$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`)
+summary(dataMH)
+#write.csv(dataMH, file = "dataMH.csv", row.names = FALSE)
+```
+
+```{r}
+dataMH_america <- subset(dataMH, grepl("America", Entity))
+head(dataMH_america)
+
+dataMH_europe <- subset(dataMH, grepl("Europe", Entity))
+head(dataMH_europe)
+
+dataMH_asia <- subset(dataMH, grepl("Asia", Entity))
+head(dataMH_asia)
+
+dataMH_africa <- subset(dataMH, grepl("Africa", Entity))
+head(dataMH_africa)
+
+dataMH_oceania <- subset(dataMH, grepl("Oceania", Entity))
+head(dataMH_oceania)
+
+dataMH_world <- rbind(dataMH_america, dataMH_europe, dataMH_asia, dataMH_africa, dataMH_oceania)
+head(dataMH_world)
+```
+

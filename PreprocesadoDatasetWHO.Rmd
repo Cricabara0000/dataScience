@@ -73,6 +73,11 @@ head(datosMH1)
 head(datosMH2)
 head(datosMH3)
 head(datosMH4)
+
+#write.csv(datosMH1, file = "data/datosMH1.csv", row.names = FALSE)
+#write.csv(datosMH2, file = "data/datosMH2.csv", row.names = FALSE)
+#write.csv(datosMH3, file = "data/datosMH3.csv", row.names = FALSE)
+#write.csv(datosMH4, file = "data/datosMH4.csv", row.names = FALSE)
 ```
 En esta etapa, acabamos de obtener cuatro datasets a partir de uno proporcionado y hemos realizado un proceso de preprocesamiento de tres de los cuatro conjuntos de datos resultantes, datosMH2, datosMH3, y datosMH4, obtenidos a partir del conjunto de datos original (datosMH). Primero, se renombran las columnas de cada conjunto de datos utilizando los valores de la primera fila como nombres de columna. Luego, se eliminan las columnas que contenían todas las variables nulas de cada conjunto de datos (debido a la superposición de los cuatro datasets en uno). Posteriormente, se elimina la primera fila de cada conjunto de datos para asegurar la coherencia estructural y se restablecen los índices de fila para iniciar desde 1, lo que facilita el acceso y manejo de los datos en análisis posteriores. Continuamos realizando un análisis básico de cada conjunto de datos obtenido, pero para ello, antes debemos pasar cada variable a su tipo correspondiente, por ejemplo, "Year" aparece como "character" y debe ser de tipo "integer", o, todas las variables que representan un tipo de trastorno de salud mental deben ser de tipo "double" en vez de tipo "character" como aparecen algunas.
 
@@ -87,41 +92,46 @@ print("Resumen de datosMH4")
 summary(datosMH4)
 ```
 
-```{r}
 
-dff <- merge(datosMH1, datosMH2, by = c("Entity", "Code", "Year"))
-dff <- dff[3137: nrow(dff), ]
-rownames(dff) <- NULL
-dff1 <- merge(dff, datosMH3, by = c("Entity", "Code", "Year"))
-dataMH <- merge(dff1, datosMH4, by = c("Entity", "Code", "Year"))
+```{r}
+dff <- merge(datosMH1, datosMH4, by = c("Entity","Year"))
+dataMH <- dff[3137: nrow(dff), ]
+rownames(dataMH) <- NULL
+#dff1 <- merge(datosMH2, datosMH3, by = c("Entity", "Year"))
+#dff1 <- dff1[3137: nrow(dff), ]
+#rownames(dff1) <- NULL
+#dataMH <- merge(dff, dff1, by = c("Entity", "Year"))
+head(dataMH)
 summary(dataMH)
-
 ```
 
 ```{r}
-print("Datos faltantes en daMH:")
-print(colSums(is.na(dataMH)))
+dataMH$Year <- as.integer(dataMH$Year)
+dataMH$Schizophrenia <- as.double(dataMH$Schizophrenia)
+dataMH$Bipolar.disorders <- as.double(dataMH$Bipolar.disorders)
+dataMH$Eating.disorders <- as.double(dataMH$Eating.disorders)
+
+dataMH_disorders <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders","Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders")]
+
+head(dataMH_disorders)
+summary(dataMH_disorders)
 ```
+
 ```{r}
-datosMH1$Year <- as.integer(datosMH1$Year)
-datosMH1$Schizophrenia <- as.double(datosMH1$Schizophrenia)
-datosMH1$Bipolar.disorders <- as.double(datosMH1$Bipolar.disorders)
-datosMH1$Eating.disorders <- as.double(datosMH1$Eating.disorders)
+missing_values_mh <- colSums(is.na(dataMH_disorders))
+print("Datos faltantes en datosMH:")
+print(missing_values_mh)
+```
 
-datosMH2$Year <- as.integer(datosMH2$Year)
-datosMH2$`Prevalence in males (%)` <- as.double(datosMH2$`Prevalence in males (%)`)
-datosMH2$`Prevalence in females (%)` <- as.double(datosMH2$`Prevalence in females (%)`)
-datosMH2$Population <- as.integer(datosMH2$Population)
+```{r}
+library(corrplot)
+correlation_matrix <- cor(dataMH_disorders, use = "pairwise.complete.obs")
+plot.new()
+corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
+         tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
+```
 
-datosMH3$Year <- as.integer(datosMH3$Year)
-datosMH3$`Suicide rate (deaths per 100000 individuals)` <- as.double(datosMH3$`Suicide rate (deaths per 100000 individuals)`)
-datosMH3$`Depressive disorder rates (number suffering per 100000)` <- as.double(datosMH3$`Depressive disorder rates (number suffering per 100000)`)
-datosMH3$Population <- as.integer(datosMH3$Population)
-
-datosMH4$Year <- as.integer(datosMH4$Year)
-datosMH4$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)` <- as.double(datosMH4$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`)
+```{r}
 
 ```
-¿Cambiar tipo de datos?
-
 
