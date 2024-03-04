@@ -146,3 +146,41 @@ print(predicciones)
 autoplot(predicciones) + labs(title = "Predicciones de suicidios para los próximos 5 años")
 ```
 
+```{r}
+data_dp <- nuevo_dataset_agrupado %>% 
+  select(Year, Numero_Depresion = Media_Depression) 
+
+data_dp$Year <- as.Date(data_dp$Year, format = "%Y")
+
+data_dp <- as_tibble(data_dp)
+
+modelo_arima_depre <- auto.arima(data_dp$Numero_Depresion)
+
+predicciones_depre <- forecast(modelo_arima_depre, h = 5)
+
+print(predicciones_depre)
+```
+
+```{r}
+autoplot(predicciones_depre) + labs(title = "Predicciones de depresión para los próximos 5 años")
+```
+
+```{r}
+data_al <- nuevo_dataset_agrupado %>% 
+  select(Year, Numero_Alcohol = Media_Alcohol_use_disorders) 
+
+data_al$Year <- as.Date(data_al$Year, format = "%Y")
+
+data_al <- as_tibble(data_al)
+
+modelo_arima_al <- auto.arima(data_al$Numero_Alcohol)
+
+predicciones_al <- forecast(modelo_arima_al, h = 5)
+
+print(predicciones_al)
+```
+
+```{r}
+autoplot(predicciones_al) + labs(title = "Predicciones de alcoholismo para los próximos 5 años")
+```
+
