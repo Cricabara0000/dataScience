@@ -114,21 +114,89 @@ head(nuevo_dataset_agrupado)
 ```
 
 ```{r}
-# Suponiendo que ya tienes un conjunto de datos llamado 'data'
-# Y que las columnas son numéricas
+#install.packages("rpart")
+#install.packages("rpart.plot")
 
-library(ggplot2)
+library(rpart)
+library(rpart.plot)
 
-# Crea un gráfico de caja para cada variable por año
-grafico_caja <- ggplot(data, aes(x = as.factor(Year))) +
-  geom_boxplot(aes(y = Depression), fill = "blue", alpha = 0.7) +
-  geom_boxplot(aes(y = Alcohol.use.disorders), fill = "green", alpha = 0.7) +
-  geom_boxplot(aes(y = SuicideRate), fill = "red", alpha = 0.7) +
-  labs(title = "Distribución de Depression, Alcohol.use.disorders y SuicideRate por año",
-       x = "Año",
-       y = "Valor") +
-  scale_fill_manual(values = c("blue", "green", "red"))
+# Suponiendo que tu conjunto de datos se llama 'data'
+# y tiene las columnas 'Alcohol.use.disorders', 'Depression', y 'SuicideRate'
 
-# Muestra el gráfico de caja
-print(grafico_caja)
+# Selecciona las columnas relevantes
+datos_regresion <- data[, c("Alcohol.use.disorders", "Depression", "SuicideRate")]
+
+# Ajusta un modelo de regresión de árbol
+modelo_arbol <- rpart(SuicideRate ~ Alcohol.use.disorders + Depression, data = datos_regresion)
+
+# Visualiza el árbol de regresión
+rpart.plot(modelo_arbol)
+
+```
+
+```{r}
+#install.packages("forecast")
+library(forecast)
+
+# Suponiendo que tu conjunto de datos se llama 'data'
+
+# Selecciona las columnas relevantes y crea una serie temporal
+serie_temporal <- ts(data$SuicideRate, start = data$Year[1], frequency = 1)
+
+# Ajusta un modelo de serie temporal (puedes utilizar otro modelo según tus necesidades)
+modelo_serie_temporal <- auto.arima(serie_temporal)
+
+# Realiza predicciones para los próximos 5 años
+predicciones <- forecast(modelo_serie_temporal, h = 5)
+
+# Muestra las predicciones
+print(predicciones)
+
+```
+
+```{r}
+library(forecast)
+
+# Suponiendo que 'predicciones' es el objeto que contiene las predicciones
+# (lo que obtuviste de la función forecast)
+
+# Visualiza las predicciones con intervalos de confianza
+plot(predicciones, main = "Predicciones de Tasa de Suicidios",
+     xlab = "Año", ylab = "Tasa de Suicidios", ylim = c(0, 30))
+
+```
+
+```{r}
+library(forecast)
+
+# Suponiendo que 'data' es tu conjunto de datos
+# y tiene las columnas 'Year', 'Alcohol.use.disorders', 'Depression', y 'SuicideRate'
+
+# Filtra los datos hasta el año 2016 para ajustar el modelo
+datos_entrenamiento <- data[data$Year <= 2017, ]
+
+# Selecciona las columnas relevantes y crea una serie temporal
+serie_temporal_entrenamiento <- ts(datos_entrenamiento$SuicideRate, start = datos_entrenamiento$Year[1], frequency = 1)
+
+# Ajusta un modelo de serie temporal (puedes ajustar otro modelo según tus necesidades)
+modelo_serie_temporal <- auto.arima(serie_temporal_entrenamiento)
+
+# Realiza predicciones para los años 2017 al 2025
+predicciones_futuras <- forecast(modelo_serie_temporal, h = 2025 - 2017 + 1)
+
+# Muestra las predicciones
+print(predicciones_futuras)
+
+```
+
+```{r}
+library(forecast)
+
+# Suponiendo que 'predicciones_futuras' es el objeto que contiene las predicciones
+# (lo que obtuviste de la función forecast)
+
+# Visualiza las predicciones con intervalos de confianza
+plot(predicciones_futuras, main = "Predicciones de Tasa de Suicidios (2017-2025)",
+     xlab = "Año", ylab = "Tasa de Suicidios", ylim = c(0, 30))
+
 ```
