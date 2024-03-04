@@ -92,18 +92,43 @@ print("Resumen de datosMH4")
 summary(datosMH4)
 ```
 
+De forma resumida, podemos indicar una breve descripción de los atributos que contiene cada conjunto de datos extraído del conjunto de datos original:
 
-```{r}
-dff <- merge(datosMH1, datosMH4, by = c("Entity","Year"))
-dataMH <- dff[3137: nrow(dff), ]
-rownames(dataMH) <- NULL
-#dff1 <- merge(datosMH2, datosMH3, by = c("Entity", "Year"))
-#dff1 <- dff1[3137: nrow(dff), ]
-#rownames(dff1) <- NULL
-#dataMH <- merge(dff, dff1, by = c("Entity", "Year"))
-head(dataMH)
-summary(dataMH)
-```
+Resumen de datosMH1:
+Entity: Países.
+Code: Código identificador de los paises.
+Year: Año en los que se recogieron los datos.
+Schizophrenia: Datos relacionados con la esquizofrenia.
+Bipolar.disorders: Datos relacionados con trastornos bipolares.
+Eating.disorders: Datos relacionados con trastornos alimentarios.
+Anxiety.disorders: Datos relacionados con trastornos de ansiedad.
+Drug.use.disorders: Datos relacionados con trastornos por consumo de drogas.
+Depression: Datos relacionados con la depresión.
+Alcohol.use.disorders: Datos relacionados con trastornos por consumo de alcohol.
+
+Resumen de datosMH2:
+Entity: Países.
+Code: Código identificador de los paises.
+Year: Año en los que se recogieron los datos.
+Prevalence in males (%): Prevalencia en hombres (%).
+Prevalence in females (%): Prevalencia en mujeres (%).
+Population: Nº de habitantes en el país en cada año.
+
+Resumen de datosMH3:
+Entity: Países.
+Code: Código identificador de los paises.
+Year: Año en los que se recogieron los datos.
+Suicide rate (deaths per 100000 individuals): Tasa de suicidio (muertes por cada 100,000 individuos).
+Depressive disorder rates (number suffering per 100000): Tasas de trastorno depresivo (número de personas que sufren por cada 100,000).
+Population: Nº de habitantes en el país en cada año.
+
+Resumen de datosMH4:
+Entity: Países.
+Code: Código identificador de los paises.
+Year: Año en los que se recogieron los datos.
+Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression): Prevalencia de trastornos depresivos - Sexo: Ambos - Edad: Todas las edades (Número) (personas que sufren de depresión).
+
+Analizando el resto de conjunto de datoso obtenidos por el equipo, analizamos que había un dataset que muestra la tasa de suicidos por sexo y año en cada país del mundo. Por ello, decidimos utilizar este conjunto de datos para nuestro proyecto.
 
 ```{r}
 data_suicide <-  read.csv("data/1.OMSTasaMortalidadSuicidio/tasa_suicidio_por_pais.csv")
@@ -118,14 +143,31 @@ dataMH <- merge(datosMH1, data_suicide, by = c("Entity","Year"))
 dataMH <- dataMH %>% filter(DIM_SEX == "Total")
 #write.csv(dataMH, file = "data/dataMH.csv", row.names = FALSE)
 head(dataMH)
+summary(dataMH)
 ```
 
+Resumen de dataMH:
+Entity: Países.
+Code: Código identificador de los paises.
+Year: Año en los que se recogieron los datos.
+Schizophrenia: Datos relacionados con la esquizofrenia.
+Bipolar.disorders: Datos relacionados con trastornos bipolares.
+Eating.disorders: Datos relacionados con trastornos alimentarios.
+Anxiety.disorders: Datos relacionados con trastornos de ansiedad.
+Drug.use.disorders: Datos relacionados con trastornos por consumo de drogas.
+Depression: Datos relacionados con la depresión.
+Alcohol.use.disorders: Datos relacionados con trastornos por consumo de alcohol.
+DIM_SEX: Datos relacionados con el sexo de las personas incluidas en la tasa de suicios (masculino y femenino).
+SuicideRate: Tasa de suicidios en los países en un año concreto por cada 100000 habitantes.
 
 ```{r}
 missing_values_mh <- colSums(is.na(dataMH))
-print("Datos faltantes en datosMH:")
+print("Datos faltantes en dataMH:")
 print(missing_values_mh)
 ```
+
+En el conjunto de datos "datosMH", no se observan datos faltantes en ninguna de las variables registradas. Tanto las variables relacionadas con trastornos mentales (esquizofrenia, depresión trastornos bipolares, trastornos alimentarios, trastornos de ansiedad, trastornos por consumo de drogas, alcohol) obtenidas del primer dataset original, así como las variables adicionales "DIM_SEX" y "SuicideRate" (tasa de suicidio), obtenidas del segundo dataset original también carecen de datos faltantes en su unión en un dataset conjunto/general.
+
 
 ```{r}
 dataMH$Year <- as.integer(dataMH$Year)
@@ -133,13 +175,39 @@ dataMH$Schizophrenia <- as.double(dataMH$Schizophrenia)
 dataMH$Bipolar.disorders <- as.double(dataMH$Bipolar.disorders)
 dataMH$Eating.disorders <- as.double(dataMH$Eating.disorders)
 ```
+En este apartado, se realiza una conversión de tipología de los datos de la siguiente manera:
+La variable "Year" se convierte a tipo de datos entero (integer).
+Las variables "Schizophrenia", "Bipolar.disorders" y "Eating.disorders" se convierten a tipo de datos de punto flotante (double).
+Estas conversiones pueden ser útiles para asegurarse de que los tipos de datos sean los adecuados para el análisis posterior del conjunto de datos general.
 
+
+```{r}
+# Seleccionar las variables de interés
+variables <- c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
+                       "Anxiety.disorders", "Drug.use.disorders", "Depression", 
+                       "Alcohol.use.disorders", "SuicideRate")
+par(mfrow=c(2, 4))
+for (variable in variables) {
+  boxplot(dataMH[[variable]], main = variable, ylab = "Valor")
+}
+
+```
+
+Según los datos observados, podemos comentar que:
+Schizophrenia: La distribución de la variable "Schizophrenia" muestra una mediana aproximadamente en 0.2, con un rango intercuartílico (IQR) que va desde aproximadamente 0.17 hasta 0.29, con algunos valores atípicos en el extremo superior del rango.
+
+Bipolar.disorders: Para la variable "Bipolar.disorders", la mediana se encuentra alrededor de 0.7, con un IQR que va desde aproximadamente 0.6 hasta 0.8. Se observa que prácticamente no hay valores atípicos en el extremo superior ni tampoco en el extemo inferior del rango. valores mínimos y máximos de 0.3189 y 1.2066, respectivamente.
+
+Eating.disorders: La mediana de la variable "Eating.disorders" es aproximadamente 0.18337, con un IQR que va desde alrededor de 0.12392 hasta 0.27564. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.07638 y un máximo de 0.94399.
+
+Anxiety.disorders, Drug.use.disorders, Depression y Alcohol.use.disorders: No se proporciona información sobre estos datos en la tabla dada. Si necesitas resúmenes para estas variables, necesitaría los estadísticos descriptivos correspondientes.
+
+SuicideRate: La mediana de la variable "SuicideRate" es aproximadamente 8.225, con un IQR que va desde alrededor de 4.888 hasta 13.125. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.000 y un máximo de 92.641. Cabe resaltar que el el valor mínimo se acerca más a la media y la mediana que el valor máximo.
 
 ```{r}
 dataMH_disorders <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders","Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders")]
 
 head(dataMH_disorders)
-summary(dataMH_disorders)
 ```
 
 ```{r}
@@ -156,12 +224,27 @@ corrplot(correlation_matrix_disorders, method = "color", type = "upper", order =
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
 
+
+
 ```{r}
 dataMH_res <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
                                      "Anxiety.disorders", "Drug.use.disorders", "Depression", 
                                      "Alcohol.use.disorders", "SuicideRate")]
 head(dataMH_res)
+summary(dataMH_res)
 ```
+
+Según los datos observados, podemos comentar que:
+Schizophrenia: La distribución de la variable "Schizophrenia" muestra una mediana aproximadamente en 0.1981, con un rango intercuartílico (IQR) que va desde aproximadamente 0.1764 hasta 0.2261. Los valores oscilan entre 0.1483 y 0.3671, con algunos valores atípicos en el extremo superior del rango.
+
+Bipolar.disorders: Para la variable "Bipolar.disorders", la mediana se encuentra alrededor de 0.6993, con un IQR que va desde aproximadamente 0.6224 hasta 0.8348. Hay valores atípicos tanto en el extremo superior como en el inferior del rango, con valores mínimos y máximos de 0.3189 y 1.2066, respectivamente.
+
+Eating.disorders: La mediana de la variable "Eating.disorders" es aproximadamente 0.18337, con un IQR que va desde alrededor de 0.12392 hasta 0.27564. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.07638 y un máximo de 0.94399.
+
+Anxiety.disorders, Drug.use.disorders, Depression y Alcohol.use.disorders: No se proporciona información sobre estos datos en la tabla dada. Si necesitas resúmenes para estas variables, necesitaría los estadísticos descriptivos correspondientes.
+
+SuicideRate: La mediana de la variable "SuicideRate" es aproximadamente 8.225, con un IQR que va desde alrededor de 4.888 hasta 13.125. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.000 y un máximo de 92.641. Cabe resaltar que el el valor mínimo se acerca más a la media y la mediana que el valor máximo.
+
 
 
 
@@ -171,4 +254,14 @@ plot.new()
 corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
+
+```{r}
+correlation_subset <- correlation_matrix["SuicideRate", -1, drop = FALSE]
+plot.new()
+corrplot(correlation_subset, method = "color", type = "upper", tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
+
+```
+
+
+
 
