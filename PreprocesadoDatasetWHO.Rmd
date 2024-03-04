@@ -172,3 +172,35 @@ corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust",
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
 
+```{r}
+library(dplyr)
+library(corrplot)
+
+data_s <- dataMH[, c("Entity", "Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
+                      "Anxiety.disorders", "Drug.use.disorders", "Depression", 
+                      "Alcohol.use.disorders", "SuicideRate")]
+
+cor_matrices <- lapply(split(datos[-1], datos$Entity), function(x) cor(x, use = "complete.obs"))
+
+# Graficar las matrices de correlación
+par(mfrow=c(4, 4))  # Ajusta la disposición de las gráficas según el número de países
+for (i in seq_along(cor_matrices)) {
+  corrplot(cor_matrices[[i]], method = "color", tl.cex = 0.7, add = i > 1, title = names(cor_matrices)[i])
+}
+```
+
+
+```{r}
+library(dplyr)
+
+data_subset <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
+                      "Anxiety.disorders", "Drug.use.disorders", "Depression", 
+                      "Alcohol.use.disorders", "SuicideRate", "Entity")]
+dataMH_grouped <- data_subset %>%
+  group_by(Entity) %>%
+  summarize(across(everything(), mean, na.rm = TRUE))
+
+data_world <- filter(dataMH_grouped, Entity != "World")
+
+```
+

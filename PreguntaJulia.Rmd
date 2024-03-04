@@ -25,16 +25,13 @@ Cálculo de la correlación de las distintas variables, con el fin de descubrir 
 library(dplyr)
 library(corrplot)
 
-# Cambia el nombre de la columna
+
 data <- data %>% rename(SuicideRate = VALUE_NUMERIC)
 
-# Selecciona las columnas relevantes
 data_total <- data[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", "Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders", "SuicideRate")]
 
-# Calcula la matriz de correlación
 correlation_matrix <- cor(data_total, use = "pairwise.complete.obs")
 
-# Visualización con corrplot
 corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
@@ -44,13 +41,11 @@ Contraste de hipótesis de las variables de mayor correlación con la tasa de su
 En primer lugar, realizo el contraste entre la tasa de suicidios y el alcohlísmo para confirmar que la correlación de 0.47 ontenida en la gráfica anterior es correcta.
 
 ```{r}
-# Suponiendo que tu conjunto de datos se llama 'data'
+
 correlation_alcohol_suicide <- cor(data$Alcohol.use.disorders, data$SuicideRate, use = "complete.obs")
 
-# Realiza un contraste de hipótesis para la correlación
 test_result <- cor.test(data$Alcohol.use.disorders, data$SuicideRate, method = "pearson")
 
-# Imprime el resultado del contraste de hipótesis
 print(test_result)
 ```
 
@@ -65,12 +60,8 @@ Como podemos observar, tienen una correlación significativa y positiva entre s�
 En segundo lugar, realizo el contraste entre la tasa de suicidios y la depresión para confirmar que la correlación de 0.32 obtenida en la gráfica de correlación anterior es correcta.
 
 ```{r}
-# Suponiendo que tu conjunto de datos se llama 'data'
-
-# Realiza un contraste de hipótesis para la correlación entre "Depression" y "SuicideRate"
 test_result_depression_suicide <- cor.test(data$Depression, data$SuicideRate, method = "pearson")
 
-# Imprime el resultado del contraste de hipótesis
 print(test_result_depression_suicide)
 ```
 
@@ -85,22 +76,15 @@ Como podemos observar, tienen una correlación significativa y positiva entre s�
 Es cierto, que la correlación no implica causalidad, por tanto hay que tener en cuenta que estos resultados son los obtenidos para este dataset en concreto, podrían variar en algún otro dataset.
 
 ```{r}
-# Suponiendo que ya tienes un conjunto de datos llamado 'data'
-# Y que deseas crear un nuevo dataset con las columnas específicas
 
-# Selecciona las columnas necesarias
 nuevo_dataset <- data[, c("Year", "Depression", "Alcohol.use.disorders", "SuicideRate")]
 
-# Muestra las primeras filas del nuevo dataset
 head(nuevo_dataset)
 ```
 
 ```{r}
-# Suponiendo que ya tienes un conjunto de datos llamado 'data'
-
 library(dplyr)
 
-# Agrupa por año y calcula la media para cada variable
 nuevo_dataset_agrupado <- data %>%
   group_by(Year) %>%
   summarise(
@@ -109,17 +93,14 @@ nuevo_dataset_agrupado <- data %>%
     Media_SuicideRate = mean(SuicideRate, na.rm = TRUE)
   )
 
-# Muestra las primeras filas del nuevo dataset agrupado
 head(nuevo_dataset_agrupado)
 ```
 
 ```{r}
-# Suponiendo que ya tienes un conjunto de datos llamado 'data'
-# Y que las columnas son numéricas
 
 library(ggplot2)
 
-# Crea un gráfico de caja para cada variable por año
+
 grafico_caja <- ggplot(data, aes(x = as.factor(Year))) +
   geom_boxplot(aes(y = Depression), fill = "blue", alpha = 0.7) +
   geom_boxplot(aes(y = Alcohol.use.disorders), fill = "green", alpha = 0.7) +
@@ -129,6 +110,90 @@ grafico_caja <- ggplot(data, aes(x = as.factor(Year))) +
        y = "Valor") +
   scale_fill_manual(values = c("blue", "green", "red"))
 
-# Muestra el gráfico de caja
+
 print(grafico_caja)
 ```
+```{r}
+grafico_caja1 <- ggplot(data, aes(x = as.factor(Year))) +
+  geom_boxplot(aes(y = Depression), fill = "blue", alpha = 0.7) +
+  labs(title = "Distribución de Depression por año",
+       x = "Año",
+       y = "Valor") +
+  scale_fill_manual(values = c("blue", "green", "red"))
+
+
+print(grafico_caja1)
+```
+
+```{r}
+grafico_caja <- ggplot(data, aes(x = as.factor(Year))) +
+  geom_boxplot(aes(y = Alcohol.use.disorders), fill = "green", alpha = 0.7) +
+  labs(title = "Alcohol.use.disorders por año",
+       x = "Año",
+       y = "Valor") +
+  scale_fill_manual(values = c("blue", "green", "red"))
+
+
+print(grafico_caja)
+```
+
+```{r}
+grafico_caja <- ggplot(data, aes(x = as.factor(Year))) +
+  geom_boxplot(aes(y = SuicideRate), fill = "red", alpha = 0.7) +
+  labs(title = "Distribución de Depression SuicideRate por año",
+       x = "Año",
+       y = "Valor") +
+  scale_fill_manual(values = c("blue", "green", "red"))
+
+
+print(grafico_caja)
+```
+
+```{r}
+# Instalar y cargar las bibliotecas necesarias
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("forecast")
+install.packages("tibble")
+
+library(readr)
+library(ggplot2)
+library(forecast)
+library(tibble)
+
+
+# Filtrar columnas relevantes y renombrarlas
+data_st <- nuevo_dataset_agrupado %>% 
+  select(Year, Numero_de_suicidios = Media_SuicideRate) 
+
+# Convertir la columna de año a formato de fecha
+data_st$Year <- as.Date(data_st$Year, format = "%Y")
+
+# Convertir a tibble para facilitar la manipulación de datos
+data_st <- as_tibble(data_st)
+
+# Visualizar los datos
+ggplot(data_st, aes(x = Year, y = Numero_de_suicidios)) +
+  geom_line() +
+  labs(title = "Número de suicidios por año",
+       x = "Año",
+       y = "Número de suicidios")
+
+# Ajustar un modelo de series temporales (por ejemplo, ARIMA)
+modelo_arima <- auto.arima(data_st$Numero_de_suicidios)
+
+# Realizar predicciones para los próximos 5 años
+predicciones <- forecast(modelo_arima, h = 5)
+
+# Mostrar las predicciones
+print(predicciones)
+
+```
+
+
+```{r}
+autoplot(predicciones) + labs(title = "Predicciones de suicidios para los próximos 5 años")
+```
+
+
+
