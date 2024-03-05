@@ -5,21 +5,23 @@ date: "2024-03-06"
 output: html_document
 ---
 
-Lectura del dataset elegido:
+Para este proyecto, hemos escogido el conjunto de datos elaborado y obtenido en el trabajo grupal de la asignatura. Recordamos que este dataset estaba compuesto por uno de los cuatro datasets relacionados con los porcentajes de enfermedades mentales a nivel mundial más el dataset que contiene información sobre la tasa de suicidios por género, año y país que había sido elaborado y preprocesado por parte de los miembros del equipo del proyecto grupal de la asignatura en la cual yo misma he participado.
 
 ```{r}
 data <- read.csv("data/dataMH.csv")
 head(data)
 ```
 
-Elimino las columnas con valores repetidos que no me aportan información:
+Como no todas las columnas me aportan la información, decido eliminar la columna "CODE" pues presenta, de forma resumida, el nombre de los países que componen el conjunto de datos y, además es una variable de tipo "character" que no permite ser analizada mediante técnicas estadísticas, como veremos a continuación, al igual que la variable "DIM_SEX":
 
 ```{r}
 data <- subset(data, select = -c(Code, DIM_SEX))
 head(data)
 ```
 
-Cálculo de la correlación de las distintas variables, con el fin de descubrir cuales están más relacionadas con la tasa de suicidios.
+Cálculo de la correlación de las distintas variables:
+
+En este apartado se obtiene una representación de la matriz de correlación con el fin de descubrir cuales son las enfermedades mentales más relacionadas con la tasa de suicidios. Además, esta matriz de correlación nos servirá en un futuro de cara al contraste de hipótesis para observar las dos variables que representan una correlación significativa respecto a la tasa de suicidios a nivel mundial.
 
 ```{r}
 library(dplyr)
@@ -35,10 +37,17 @@ correlation_matrix <- cor(data_total, use = "pairwise.complete.obs")
 corrplot(correlation_matrix, method = "color", type = "upper", order = "hclust", 
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
+Una vez obtenida la matriz de correlación, observamos que los trastornos por enfermedad mental con mayor correlación corresponden con las variables que representan a enfermedades mentales: trastornos mentales debidos al alcoholismo ("Alcohol.use.disorders"), con un 0.47, y, depresión ("Depression"), con un 0.32.
 
-Contraste de hipótesis de las variables de mayor correlación con la tasa de suicidios, para comprobar la relación entre ambas variables:
 
-En primer lugar, realizo el contraste entre la tasa de suicidios y el alcohlísmo para confirmar que la correlación de 0.47 ontenida en la gráfica anterior es correcta.
+Contraste de hipótesis 
+
+En este apartado se presentan dos contrastes de hipótesis entre las variables de mayor correlación con la tasa de suicidios para  poder contrastar si estas enfermedades mentales presentan una relación lineal significativa con la tasa de suicidios a nivel mundial:
+
+En primer lugar, se realiza el contraste de hipótesis entre la tasa de suicidios y el alcoholismo para confirmar que la correlación de 0.47 obtenida en la gráfica anterior representa un resultado significativo para el problema, donde:
+
+Hipótesis nula (Ho): No hay correlación significativa entre la la enfermedad mental (alcoholismo) y la tasa de suicidios.
+Hipótesis alternativa (H1): Existe una correlación significativa entre la enfermedad mental (alcoholismo) y la tasa de suicidios.
 
 ```{r}
 
@@ -49,15 +58,19 @@ test_result <- cor.test(data$Alcohol.use.disorders, data$SuicideRate, method = "
 print(test_result)
 ```
 
-Como podemos observar, tienen una correlación significativa y positiva entre sí:
+Como podemos observar, tienen una correlación significativa y positiva entre sí pues:
 
 1.  **Valor p:** El valor p es muy pequeño (menor que cualquier nivel de significancia común, como 0.05), lo que indica que hay evidencia estadística significativa para rechazar la hipótesis nula. En otras palabras, hay una correlación significativa entre "Alcohol.use.disorders" y "SuicideRate".
 
-2.  **Dirección de la correlación:** Dado que el intervalo de confianza no incluye el valor 0 y el valor de correlación es positivo (0.4678559), puedes concluir que hay una correlación positiva entre las dos variables. A medida que aumenta la tasa de trastornos por uso de alcohol, tiende a aumentar también la tasa de suicidio.
+2.  **Dirección de la correlación:** Dado que el intervalo de confianza no incluye el valor 0 y el valor de correlación es positivo (0.4678559), se puede concluir que hay una correlación positiva entre las dos variables. A medida que aumenta la tasa de trastornos por uso de alcohol, tiende a aumentar también la tasa de suicidio.
 
-3.  **Intervalo de confianza:** El intervalo de confianza al 95% indica que puedes estar 95% seguro de que la verdadera correlación está dentro del rango del 0.4388302 al 0.4959063.
+3.  **Intervalo de confianza:** El intervalo de confianza al 95% indica que podemos estar al 95% de confianza de que la verdadera correlación está dentro del rango del 0.4388302 al 0.4959063.
 
-En segundo lugar, realizo el contraste entre la tasa de suicidios y la depresión para confirmar que la correlación de 0.32 obtenida en la gráfica de correlación anterior es correcta.
+
+En segundo lugar, se realiza el contraste de hipótesis entre la tasa de suicidios y la depresión para confirmar que la correlación de 0.32 obtenida en la gráfica de correlación anterior es correcta y también representa un resultado significativo para el problema, donde:
+
+Hipótesis nula (Ho): No hay correlación significativa entre la la enfermedad mental (depresión) y la tasa de suicidios.
+Hipótesis alternativa (H1): Existe una correlación significativa entre la enfermedad mental (depresión) y la tasa de suicidios.
 
 ```{r}
 test_result_depression_suicide <- cor.test(data$Depression, data$SuicideRate, method = "pearson")
@@ -65,36 +78,27 @@ test_result_depression_suicide <- cor.test(data$Depression, data$SuicideRate, me
 print(test_result_depression_suicide)
 ```
 
-Como podemos observar, tienen una correlación significativa y positiva entre sí:
+Como podemos observar, tienen una correlación significativa y positiva entre sí pues:
 
-1.  **Valor p:** El valor p es muy pequeño (menor que cualquier nivel de significancia común, como 0.05), lo que indica que hay evidencia estadística significativa para rechazar la hipótesis nula. En otras palabras, hay una correlación significativa entre "Depression" y "SuicideRate".
+1.  **Valor p:** El valor p es muy pequeño (menor que cualquier nivel de significancia común, como 0.05), lo que indica que hay evidencia estadística significativa para rechazar la hipótesis nula. En otras palabras, hay una correlación significativa entre las variables "Depression" y "SuicideRate".
 
-2.  **Dirección de la correlación:** Dado que el intervalo de confianza no incluye el valor 0 y el valor de correlación es positivo (0.320269), puedes concluir que hay una correlación positiva entre las dos variables. A medida que aumenta la variable "Depression", tiende a aumentar también la tasa de suicidio.
+2.  **Dirección de la correlación:** Dado que el intervalo de confianza no incluye el valor 0 y el valor de correlación es positivo (0.320269), se puede concluir que hay una correlación positiva entre las dos variables. A medida que aumenta la variable "Depression", tiende a aumentar también la tasa de suicidio.
 
-3.  **Intervalo de confianza:** El intervalo de confianza al 95% indica que puedes estar 95% seguro de que la verdadera correlación está dentro del rango del 0.2871029 al 0.3526682.
+3.  **Intervalo de confianza:** El intervalo de confianza al 95% indica que se puede estar seguro al 95% de confianza de que la verdadera correlación está dentro del rango del 0.2871029 al 0.3526682.
 
-Es cierto, que la correlación no implica causalidad, por tanto hay que tener en cuenta que estos resultados son los obtenidos para este dataset en concreto, podrían variar en algún otro dataset.
+Es cierto, que la correlación no implica causalidad, por tanto hay que tener en cuenta que estos resultados son los obtenidos para este dataset en concreto, pero podrían variar en algún otro dataset.
+
+
+Una vez hemos obtenido las dos enfermedades mentales que representan evidencias relacionales más significativas respecto a la tasa de suicidios en los países del mundo por cada 100000 habitantes, continuamos con la obtención de la información relevante para solucionar el problema planteado.
 
 ```{r}
-
 nuevo_dataset <- data[, c("Year", "Depression", "Alcohol.use.disorders", "SuicideRate")]
 
 head(nuevo_dataset)
 ```
+Árbol de decisión Alcoholismo/Depresión - Tasa de Suicidios:
 
-```{r}
-library(dplyr)
-
-nuevo_dataset_agrupado <- data %>%
-  group_by(Year) %>%
-  summarise(
-    Media_Depression = mean(Depression, na.rm = TRUE),
-    Media_Alcohol_use_disorders = mean(Alcohol.use.disorders, na.rm = TRUE),
-    Media_SuicideRate = mean(SuicideRate, na.rm = TRUE)
-  )
-
-head(nuevo_dataset_agrupado)
-```
+En este apartado, utilizamos la técnica de árbol de regresión para investigar cómo los trastornos por consumo de alcohol y depresión, pueden estar relacionados con las tasas de suicidio. Para ello, se ha realizado una "construcción" de un árbol de regresión que muestra cómo estos factores se relacionan entre sí con las tasas de suicidio. 
 
 
 ```{r}
@@ -110,7 +114,27 @@ modelo_arbol <- rpart(SuicideRate ~ Alcohol.use.disorders + Depression, data = d
 
 rpart.plot(modelo_arbol)
 ```
+Como podemos observar, el funcionamiento del modelo de árbol de regresión muestra cómo se relacionan las variables predictoras (alcoholismo y depresión) con la variable de respuesta (tasas de suicidio) en el contexto del conjunto de datos utilizado.
+Por ejemplo, si un país tiene una tasa de alcoholismo mayor o igual de 3.1 y tiene una tasa de depresión mayor o igual de 4.2, dicho país tendrá una tasa de 36 suicidios por cada 100000 habitantes, representando el 1% de posibilidades de que esto ocurra.
+Este árbol y los caminos que van formando sus ramas nos ayuda a comprender cómo influyen las variables predictoras con respecto a la tasa de suicidio en el conjunto de datos analizado.
 
+Serie Temporales
+Una vez hemos empleado una técnica para observar una predicción de la tasa de suicidios frente a las dos enfermedades mentales más significativas del conjunto de datos, nos aventuramos a realizar una predicción de la tasa de suicidios en los próximos cinco años (a partir del último año del dataset seleccionado: 2017) empleando la técnica de series temporales. 
+```{r}
+library(dplyr)
+
+nuevo_dataset_agrupado <- data %>%
+  group_by(Year) %>%
+  summarise(
+    Depression = mean(Depression, na.rm = TRUE),
+    Alcohol_use_disorders = mean(Alcohol.use.disorders, na.rm = TRUE),
+    SuicideRate = mean(SuicideRate, na.rm = TRUE)
+  )
+
+head(nuevo_dataset_agrupado)
+```
+
+Para ello, se ha resumido el conjunto de datos seleccionado y se han agrupado los datos por año para entender cómo estas variables han cambiado en promedio a lo largo del tiempo (entre el 2000 y el 2017). Utilizando este conjunto de datos agrupados, se continúa empleando la técnica de series temporales a través del modelo arima.
 
 ```{r}
 # Instalar y cargar las bibliotecas necesarias
@@ -126,7 +150,7 @@ library(tibble)
 library(dplyr)
 
 data_st <- nuevo_dataset_agrupado %>% 
-  select(Year, Numero_de_suicidios = Media_SuicideRate) 
+  select(Year, Numero_de_suicidios = SuicideRate) 
 
 data_st$Year <- as.Date(data_st$Year, format = "%Y")
 
@@ -140,15 +164,31 @@ print(predicciones)
 
 ```
 
+El método ARIMA (Autoregressive Integrated Moving Average) se utiliza en este contexto para modelar y predecir el número de suicidios a partir de un conjunto de datos de series temporales. Primero, se ajusta un modelo ARIMA automáticamente a los datos utilizando la función auto.arima(), que selecciona automáticamente los parámetros del modelo ARIMA que mejor se ajustan a los datos observados. Luego, se generan predicciones futuras utilizando la función forecast(). Esta función utiliza el modelo ARIMA ajustado para predecir el número de suicidios en  5 años hacia adelante.
 
+En este contexto, los resultados obtenidos se representa entre las siguientes variables proporcionadas por el modelo utilizado:
+
+Point Forecast: estimación puntual del número de suicidios para el período de 5 años hacia delante.
+
+Lo 80: límite inferior del intervalo de predicción del 80%. Esto significa que hay un 80% de probabilidad de que el verdadero valor esté por encima de este límite y un 20% de probabilidad de que esté por debajo.
+
+Hi 80: límite superior del intervalo de predicción del 80%. Similarmente al límite inferior, hay un 80% de probabilidad de que el verdadero valor esté por debajo de este límite y un 20% de probabilidad de que esté por encima.
+
+Lo 95: límite inferior del intervalo de predicción del 95%. Hay un 95% de probabilidad de que el verdadero valor esté por encima de este límite y un 5% de probabilidad de que esté por debajo.
+
+Hi 95: límite superior del intervalo de predicción del 95%. Hay un 95% de probabilidad de que el verdadero valor esté por debajo de este límite y un 5% de probabilidad de que esté por encima.
+
+En este caso, los resultados se observan en la siguiente gráfica que representa las predicciones de suicidios para los próximos 5 años en función de las estimaciones proporcionadas por el modelo ARIMA (en forma de intervalos de confianza del 80% y del 95%.).
 
 ```{r}
 autoplot(predicciones) + labs(title = "Predicciones de suicidios para los próximos 5 años")
 ```
 
+Como podemos observar, el valor de la predicción de la tasa de suicidios en los próximos cinco años continúa con la tendencia de bajada.
+
 ```{r}
 data_dp <- nuevo_dataset_agrupado %>% 
-  select(Year, Numero_Depresion = Media_Depression) 
+  select(Year, Numero_Depresion = Depression) 
 
 data_dp$Year <- as.Date(data_dp$Year, format = "%Y")
 
@@ -167,7 +207,7 @@ autoplot(predicciones_depre) + labs(title = "Predicciones de depresión para los
 
 ```{r}
 data_al <- nuevo_dataset_agrupado %>% 
-  select(Year, Numero_Alcohol = Media_Alcohol_use_disorders) 
+  select(Year, Numero_Alcohol = Alcohol_use_disorders) 
 
 data_al$Year <- as.Date(data_al$Year, format = "%Y")
 
