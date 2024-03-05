@@ -181,8 +181,10 @@ Las variables "Schizophrenia", "Bipolar.disorders" y "Eating.disorders" se convi
 Estas conversiones pueden ser útiles para asegurarse de que los tipos de datos sean los adecuados para el análisis posterior del conjunto de datos general.
 
 
+En resumen, en la etapa de preprocesamiento, se evidenció una presencia significativa de valores nulos, aproximadamente el 80%, en las variables "Eating.disorders", "Anxiety.disorders", "Drug.use.disorders", "Depression" y "Alcohol.use.disorders". Además, se identificó un error en la composición del archivo, donde varios atributos parecen haber sido insertados como filas a partir de la fila número 6469. Para abordar esto, se crearon cuatro conjuntos de datos (datosMH1, datosMH2, datosMH3 y datosMH4) mediante divisiones específicas se renombraron las columnas de cada conjunto de datos utilizando los valores de la primera fila como nombres de columna. Luego, se eliminaron las columnas que contenían todas las variables nulas, seguido por la eliminación de la primera fila para garantizar la coherencia estructural. Los índices de fila se restablecieron desde 1 para facilitar el acceso y manejo de datos en análisis posteriores.
+
+Posteriormente, se fusionaron los datosMH1 con datos de tasas de suicidio (data_suicide), filtrando por la variable "DIM_SEX" igual a "Total". En esta fusión, no se observaron datos faltantes en ninguna variable. Finalmente, se llevó a cabo una conversión de tipos de datos, como cambiar "Year" a tipo entero e "Schizophrenia", "Bipolar.disorders" y "Eating.disorders" a tipo de punto flotante (double), asegurando la coherencia para análisis posteriores. Estos procesos son fundamentales para obtener conjuntos de datos consistentes y preparados para contestar la pregunta propuesta así como para visualizar los datos.
 ```{r}
-# Seleccionar las variables de interés
 variables <- c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
                        "Anxiety.disorders", "Drug.use.disorders", "Depression", 
                        "Alcohol.use.disorders", "SuicideRate")
@@ -193,16 +195,24 @@ for (variable in variables) {
 
 ```
 
-Según los datos observados, podemos comentar que:
-Schizophrenia: La distribución de la variable "Schizophrenia" muestra una mediana aproximadamente en 0.2, con un rango intercuartílico (IQR) que va desde aproximadamente 0.17 hasta 0.29, con algunos valores atípicos en el extremo superior del rango.
 
-Bipolar.disorders: Para la variable "Bipolar.disorders", la mediana se encuentra alrededor de 0.7, con un IQR que va desde aproximadamente 0.6 hasta 0.8. Se observa que prácticamente no hay valores atípicos en el extremo superior ni tampoco en el extemo inferior del rango. valores mínimos y máximos de 0.3189 y 1.2066, respectivamente.
+Según los datos observados, podemos comentar que:
+Schizophrenia: La distribución de la variable "Schizophrenia" muestra una mediana aproximadamente en 0.1981, con un rango intercuartílico (IQR) que va desde aproximadamente 0.1764 hasta 0.2261. Los valores oscilan entre 0.1483 y 0.3671, con algunos valores atípicos en el extremo superior del rango.
+
+Bipolar.disorders: Para la variable "Bipolar.disorders", la mediana se encuentra alrededor de 0.6993, con un IQR que va desde aproximadamente 0.6224 hasta 0.8348. No hay valores atípicos en el extremo inferior del rango pero sí en el extremo superior del mismo, con valores máximos de 1.2066.
 
 Eating.disorders: La mediana de la variable "Eating.disorders" es aproximadamente 0.18337, con un IQR que va desde alrededor de 0.12392 hasta 0.27564. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.07638 y un máximo de 0.94399.
 
-Anxiety.disorders, Drug.use.disorders, Depression y Alcohol.use.disorders: No se proporciona información sobre estos datos en la tabla dada. Si necesitas resúmenes para estas variables, necesitaría los estadísticos descriptivos correspondientes.
+Anxiety.disorders: Para la variable "Anxiety.disorders", la mediana se encuentra alrededor de 3.942, con un IQR que va desde aproximadamente 3.095 hasta 4.652 Tampoco se observan valores atípicos en el extremo inferior del rango pero sí se observan algunos valores fuera del rango en el extremo superior del mismo, con valores máximos de 8.967.
+
+Drug.use.disorders: La mediana de la variable "Drug.use.disorders" es aproximadamente 0.6895, con un IQR que va desde alrededor de 0.5126 hasta 0.9057 En esta variable tampoco se observan valores atípicos en el extremo inferior del rango pero sí se observan gran cantidad de valores fuera del rango en el extremo superior del mismo, con valores máximos 4 veces por encima de la mediana.
+
+Depression: La mediana de la variable "Depression" es aproximadamente 3.470, con un IQR que va desde alrededor de 2.962 hasta 3.861. En esta variable tampoco se observan valores atípicos en el extremo inferior del rango pero sí en el extremo superior del mismo, con valores máximos de 5.745.
+
+Alcohol.use.disorders: Para la variable "Bipolar.disorders", la mediana se encuentra alrededor de 0.6993, con un IQR que va desde aproximadamente 0.9618 hasta 1.8482. Tampoco se observan valores atípicos en el extremo inferior del rango pero sí se observan gran cantidad de valores fuera del rango en el extremo superior del mismo, con valores máximos 4 veces por encima de la mediana.
 
 SuicideRate: La mediana de la variable "SuicideRate" es aproximadamente 8.225, con un IQR que va desde alrededor de 4.888 hasta 13.125. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.000 y un máximo de 92.641. Cabe resaltar que el el valor mínimo se acerca más a la media y la mediana que el valor máximo.
+
 
 ```{r}
 dataMH_disorders <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders","Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders")]
@@ -224,7 +234,17 @@ corrplot(correlation_matrix_disorders, method = "color", type = "upper", order =
          tl.cex = 0.8, tl.col = "black", tl.srt = 45, addCoef.col = "black", number.cex = 0.7)
 ```
 
+En el análisis de correlación, se evalúa la relación lineal entre pares de variables. Los resultados indican que hay asociaciones significativas entre varios trastornos de salud mental en el conjunto de datos analizado:
 
+Eating Disorders y Schizophrenia (0.70): La fuerte correlación positiva sugiere una conexión entre trastornos alimentarios y esquizofrenia. Este hallazgo puede tener implicaciones importantes ya que indica que la presencia de un trastorno podría estar asociada con un mayor riesgo o prevalencia del otro.
+
+Bipolar Disorders y Anxiety Disorders (0.76): La gran correlación positiva entre estos dos trastornos sugiere una relación muy estrecha entre el trastorno bipolar y los trastornos de ansiedad. De hecho, el valor de la correlación es el máximo entre cualquier par de enfermedades mentales indicando que las enfermedaes mentales que mayor relación lineal presentan son la bipolaridad y la ansiedad.
+
+Anxiety Disorders y Schizophrenia (0.46): La correlación positiva considerable entre la ansiedad y la esquizofrenia indica una relación entre estos dos trastornos. Este hallazgo podría tener consecuencias entre los síntomas de ansiedad en pacientes con esquizofrenia.
+
+Alcohol Use Disorders y otras variables: La falta de correlaciones significativas con "Alcohol.use.disorders" sugiere que los trastornos por consumo de alcohol pueden tener una dinámica diferente o menos asociación lineal con los otros trastornos mentales analizados. Esto podría indicar que los factores subyacentes o los desencadenantes de los trastornos por consumo de alcohol pueden ser menos directamente relacionados con los factores que contribuyen a los otros trastornos mentales en consideración.
+
+ 
 
 ```{r}
 dataMH_res <- dataMH[, c("Schizophrenia", "Bipolar.disorders", "Eating.disorders", 
@@ -234,18 +254,8 @@ head(dataMH_res)
 summary(dataMH_res)
 ```
 
-Según los datos observados, podemos comentar que:
-Schizophrenia: La distribución de la variable "Schizophrenia" muestra una mediana aproximadamente en 0.1981, con un rango intercuartílico (IQR) que va desde aproximadamente 0.1764 hasta 0.2261. Los valores oscilan entre 0.1483 y 0.3671, con algunos valores atípicos en el extremo superior del rango.
 
-Bipolar.disorders: Para la variable "Bipolar.disorders", la mediana se encuentra alrededor de 0.6993, con un IQR que va desde aproximadamente 0.6224 hasta 0.8348. Hay valores atípicos tanto en el extremo superior como en el inferior del rango, con valores mínimos y máximos de 0.3189 y 1.2066, respectivamente.
-
-Eating.disorders: La mediana de la variable "Eating.disorders" es aproximadamente 0.18337, con un IQR que va desde alrededor de 0.12392 hasta 0.27564. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.07638 y un máximo de 0.94399.
-
-Anxiety.disorders, Drug.use.disorders, Depression y Alcohol.use.disorders: No se proporciona información sobre estos datos en la tabla dada. Si necesitas resúmenes para estas variables, necesitaría los estadísticos descriptivos correspondientes.
-
-SuicideRate: La mediana de la variable "SuicideRate" es aproximadamente 8.225, con un IQR que va desde alrededor de 4.888 hasta 13.125. Se observan valores atípicos en el extremo superior del rango, con un mínimo de 0.000 y un máximo de 92.641. Cabe resaltar que el el valor mínimo se acerca más a la media y la mediana que el valor máximo.
-
-
+A continuación, observamos la correlación entre los trastornos de enfermedades mentales con la tasa de suicidios.
 
 
 ```{r}
@@ -262,6 +272,15 @@ corrplot(correlation_subset, method = "color", type = "upper", tl.cex = 0.8, tl.
 
 ```
 
+
+```{r}
+print(correlation_subset)
+```
+
+
+En este análisis de correlación entre los trastornos de enfermedades mentales con la tasa de suicidios, observamos que destacan correlaciones positivas entre dos trastornos de enfermedades mentales y los valores del resto están cercanos a cero. Concretamente, la correlación más fuerte entre un trastorno de enfermedad mental con la tasa de nivel de suicidio son los problemas de consumo de alcohol con un 0.47, seguida por la depresión (0.32). Este aspecto es muy importante puesto que, como podemos observar, los problemas con el uso del alcohol presenta una gran correlación con la tasa de suicidios en el mundo aunque no presente una correlación significativa con el resto de enfermedades mentales.Por otro lado, se observan correlaciones cercanas a cero, entre los trastornos bipolares (-0.07) y ansiedad (-0.07) respecto a la tasa de suicidios. 
+
+Los resultados de este estudio subrayan la importancia de considerar la relación entre la salud mental y el suicidio, brindando perspectivas útiles para la investigación e incluso el diagnóstico médico.
 
 
 
