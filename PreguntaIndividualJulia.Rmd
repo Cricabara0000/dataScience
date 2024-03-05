@@ -4,6 +4,16 @@ author: "Julia"
 date: "2024-03-06"
 output: html_document
 ---
+Introducción
+
+Este proyecto pretende proporcionar una exploración adecuada sobre la relación entre los trastornos mentales, como la depresión y los problemas de alcoholismo y las tasas de suicidio a nivel mundial empleando técnicas estadísticas como los contrastes de hipótesis para determinar la importancia significativa entre las enfermedades mentales que mayor correlación presentan con respecto a la tasa de suicidio en función de los resultados obtenidos en el proyecto grupal.
+
+Además, se emplea un modelo de árbol de regresión para comprender cómo se relacionan las variables predictoras (seleccionadas en la etapa anterior) con la tasa de suicidio, ofreciendo una visión más clara de los factores que contribuyen a este importante problema de salud mental pública.
+
+La aplicación de técnicas de series temporales también se destaca en el proyecto, permitiendo estimar las tasas de suicidio en los próximos años, así como la predicción del porcentaje de las enfermedades contrastadas.
+
+En resumen, el proyecto proporciona una comprensión integral de la relación entre los trastornos mentales más significativos y las tasas de suicidio a nivel mundial, ofreciendo información valiosa para abordar este importante problema de salud pública.
+
 
 Para este proyecto, hemos escogido el conjunto de datos elaborado y obtenido en el trabajo grupal de la asignatura. Recordamos que este dataset estaba compuesto por uno de los cuatro datasets relacionados con los porcentajes de enfermedades mentales a nivel mundial más el dataset que contiene información sobre la tasa de suicidios por género, año y país que había sido elaborado y preprocesado por parte de los miembros del equipo del proyecto grupal de la asignatura en la cual yo misma he participado.
 
@@ -134,10 +144,29 @@ nuevo_dataset_agrupado <- data %>%
 head(nuevo_dataset_agrupado)
 ```
 
-Para ello, se ha resumido el conjunto de datos seleccionado y se han agrupado los datos por año para entender cómo estas variables han cambiado en promedio a lo largo del tiempo (entre el 2000 y el 2017). Utilizando este conjunto de datos agrupados, se continúa empleando la técnica de series temporales a través del modelo arima.
+Para ello, se ha resumido el conjunto de datos seleccionado y se han agrupado los datos por año para entender cómo estas variables han cambiado en promedio a lo largo del tiempo (entre el 2000 y el 2017). Utilizando este conjunto de datos agrupados, se continúa empleando la técnica de series temporales a través del método arima.
 
+El método ARIMA (Autoregressive Integrated Moving Average) se utiliza en este contexto para modelar y predecir el diferentes tasas relacionadas  con el número de suicidios y enfermedades mentales,  a partir de un conjunto de datos de series temporales. Primeramente, se se utiliza la función auto.arima(), que selecciona automáticamente los parámetros del modelo ARIMA que mejor se ajustan a los datos observados. Luego, se generan predicciones futuras utilizando la función forecast(). Esta función utiliza el modelo ARIMA ajustado para predecir el número de suicidios en  5 años hacia adelante.
+
+En este contexto, los resultados obtenidos se representan a través de las siguientes variables proporcionadas por el modelo utilizado:
+
+Point Forecast: estimación puntual del número de suicidios para el período de 5 años hacia delante.
+
+Lo 80: límite inferior del intervalo de predicción del 80%. Esto significa que hay un 80% de probabilidad de que el verdadero valor esté por encima de este límite y un 20% de probabilidad de que esté por debajo.
+
+Hi 80: límite superior del intervalo de predicción del 80%. Similarmente al límite inferior, hay un 80% de probabilidad de que el verdadero valor esté por debajo de este límite y un 20% de probabilidad de que esté por encima.
+
+Lo 95: límite inferior del intervalo de predicción del 95%. Hay un 95% de probabilidad de que el verdadero valor esté por encima de este límite y un 5% de probabilidad de que esté por debajo.
+
+Hi 95: límite superior del intervalo de predicción del 95%. Hay un 95% de probabilidad de que el verdadero valor esté por debajo de este límite y un 5% de probabilidad de que esté por encima.
+
+
+A continuación, se observan los resultados que representas las predicciones de la tasa de suicidios y el porcentaje de personas en el mundo con trastornos de alcoholismo y depresión para los próximos 5 años en función de las estimaciones proporcionadas por el modelo ARIMA (en forma de intervalos de confianza del 80% y del 95%.) tanto en forma de tabla como de forma visual a través de una gráfica.
+
+Hay que tener en cuenta que las gráficas que representan estas estimaciones muestran una línea negra que representa a la variable "Point Forecast", un área de color azul oscura, entre la que se encuentra la línea, que representa los límites de predicción (Hi/Lo) del 95% y un área de color azul claro que representa los límites de predicción (Hi/Lo) del 80%. En otras palabras, los valores de las áreas por encima de la línea de los valores estimados en la variable "Point Forecast" equivalen a los límites de predicción Hi y, los valores de las áreas por debajo de la línea de los valores estimados en la variable "Point Forecast", equivalen a los límites de predicción Lo.
+
+Predicción de la tasa de suicidios por 100000 habitantes en los próximos 5 años:
 ```{r}
-# Instalar y cargar las bibliotecas necesarias
 #install.packages("readr")
 #install.packages("ggplot2")
 #install.packages("forecast")
@@ -164,28 +193,15 @@ print(predicciones)
 
 ```
 
-El método ARIMA (Autoregressive Integrated Moving Average) se utiliza en este contexto para modelar y predecir el número de suicidios a partir de un conjunto de datos de series temporales. Primero, se ajusta un modelo ARIMA automáticamente a los datos utilizando la función auto.arima(), que selecciona automáticamente los parámetros del modelo ARIMA que mejor se ajustan a los datos observados. Luego, se generan predicciones futuras utilizando la función forecast(). Esta función utiliza el modelo ARIMA ajustado para predecir el número de suicidios en  5 años hacia adelante.
 
-En este contexto, los resultados obtenidos se representa entre las siguientes variables proporcionadas por el modelo utilizado:
-
-Point Forecast: estimación puntual del número de suicidios para el período de 5 años hacia delante.
-
-Lo 80: límite inferior del intervalo de predicción del 80%. Esto significa que hay un 80% de probabilidad de que el verdadero valor esté por encima de este límite y un 20% de probabilidad de que esté por debajo.
-
-Hi 80: límite superior del intervalo de predicción del 80%. Similarmente al límite inferior, hay un 80% de probabilidad de que el verdadero valor esté por debajo de este límite y un 20% de probabilidad de que esté por encima.
-
-Lo 95: límite inferior del intervalo de predicción del 95%. Hay un 95% de probabilidad de que el verdadero valor esté por encima de este límite y un 5% de probabilidad de que esté por debajo.
-
-Hi 95: límite superior del intervalo de predicción del 95%. Hay un 95% de probabilidad de que el verdadero valor esté por debajo de este límite y un 5% de probabilidad de que esté por encima.
-
-En este caso, los resultados se observan en la siguiente gráfica que representa las predicciones de suicidios para los próximos 5 años en función de las estimaciones proporcionadas por el modelo ARIMA (en forma de intervalos de confianza del 80% y del 95%.).
 
 ```{r}
 autoplot(predicciones) + labs(title = "Predicciones de suicidios para los próximos 5 años")
 ```
 
-Como podemos observar, el valor de la predicción de la tasa de suicidios en los próximos cinco años continúa con la tendencia de bajada.
+Como podemos observar, el valor de la predicción de la tasa de suicidios en los próximos cinco años continúa con la tendencia de bajada para todas las estimaciones del modelo ajustado, es decir, tanto para la variable "Point Forecast" como para los límites del intervalo de predicción Lo y Hi, llegando a una tasa de 8.82 suicidios por cada 100000 habitantes en el año 2023. Por ello, podemos afirmar que durante los periodos estimados, se prevee que la tasa de suicidios en el mundo tienda a decrecer, mostrando una continuación de dicho decrecimiento en los años próximos.
 
+Predicción del porcentaje de personas con depresión por en los próximos 5 años:
 ```{r}
 data_dp <- nuevo_dataset_agrupado %>% 
   select(Year, Numero_Depresion = Depression) 
@@ -204,7 +220,10 @@ print(predicciones_depre)
 ```{r}
 autoplot(predicciones_depre) + labs(title = "Predicciones de depresión para los próximos 5 años")
 ```
+Tal y como se muestra en la gráfica, por desgracia, observamos aumento constante en las estimaciones si observamos la variable "Point Forecast" y los límites del intervalo de predicción Hi, aunque no es muy brusco pues hay una diferencia de, aproximadamente 0.01 entre el porcentaje de depresión del año 2017 y la estimación de esta enfermedad para el año 2023. Sin embargo, los límites del intervalo predicción Lo muestran un decrecimiento a medida que avanzan los períodos. Por ello, podemos afirmar que durante los periodos estimados, el porcentaje de personas en el mundo con depresión se mantiene prácticamente constante, aunque muestra una tendencia al crecimiento durante los años próximos.
 
+
+Predicción del porcentaje de personas con alcoholismo por en los próximos 5 años:
 ```{r}
 data_al <- nuevo_dataset_agrupado %>% 
   select(Year, Numero_Alcohol = Alcohol_use_disorders) 
@@ -224,3 +243,16 @@ print(predicciones_al)
 autoplot(predicciones_al) + labs(title = "Predicciones de alcoholismo para los próximos 5 años")
 ```
 
+Finalmente, en la gráfica que representa la estimación del porcentaje de personas con problemas de alcoholismo a nivel mundial en los próximos cinco años, podemos observar que la gráfica descrita por la variable "Point Forecast" continúa con la tendencia de bajada comenzada a partir de los años 2010-2015, tras un crecimiento en 5 años anteriores, obteniendo un valor de, aproximadamente 1.53% de personas con problemas de alcoholismo en el mundo en 2022. Los límites del intervalo de predicción Lo, también muestran un decrecimiento continuo en los años estimados, sin embargo, los valores estimados en los límites del intervalo de predicción Hi muestran una tendencia a decrecer en los próximos años. Como la diferencia entre las estimaciones es del orden de números centésimales, podemos afirmar que prácticamente la gráfica se mantiene constante durante los años estimados, por debajo del pico máximo obtenido en 2012, con una tendencia al decrecimiento en años posteriores.
+
+En conclusión, podemos comentar que los aspectos más importantes y significativos de este proyecto son:
+
+Correlación entre trastornos mentales y tasas de suicidio: Se ha demostrado estadísticamente una correlación significativa y positiva entre el porcentaje de trastornos mentales de depresión y  problemas de alcoholismo con las tasas de suicidio a nivel mundial.
+
+Modelo de árbol de regresión: El análisis mediante un modelo de árbol de regresión ha proporcionado una comprensión detallada de cómo las enfermedades mentales más significativas, el alcoholismo y la depresión, se relacionan con las tasas de suicidio. Esto ofrece una herramienta útil para identificar los factores que contribuyen significativamente al aumento de las tasas de suicidio.
+
+Predicciones a través de series temporales: La aplicación de técnicas de series temporales ha permitido proyectar las tasas de suicidio y el porcentaje de personas con depresión y problemas de alcoholismo en el mundo en los próximos años. De hecho, si observamos datos en bases de datos de confianza, podemos observar que los valores obtenidos no difieren mucho de lo que se ha estimado. Por ejemplo, según una noticia de la Organización Mundial de la Salud de 2023 indica que un porcentaje de 3,8% de personas pueden padecer depresión en el mundo y el modelo  definido en este proyecto estima que, aproximadamente, el 3,44% de personas en el mundo padecen depresión.
+
+Causalidad vs. correlación: Si bien se ha demostrado una correlación significativa entre los trastornos mentales y las tasas de suicidio, es importante tener en cuenta que la correlación no implica causalidad. Es decir, existen otros factores diferentes a los factores de la salud que también pueden influir en esta relación, como por ejemplo, factores sociales y/o demográficos. Por lo tanto, como futuras investigaciones queda abierta la puerta de realizar más investigaciones para comprender completamente los factores que pueden influir en la tasa de suicidios.
+
+Para finalizar, cabe resaltar que estas conclusiones resaltan la importancia de abordar los trastornos de salud como componentes clave en la prevención del suicidio a nivel mundial promoviendo estrategias que fomenten el cuidado de la salud mental y el bienestar emocional en toda la población en general.
