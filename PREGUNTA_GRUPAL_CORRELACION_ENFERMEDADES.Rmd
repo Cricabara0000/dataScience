@@ -1,6 +1,6 @@
 ---
 title: "Data Science"
-author: "Julia, Cristian"
+author: "Julia, Cristian, Jorge, MiguelÁngel"
 date: "2024-02-19"
 output: html_document
 ---
