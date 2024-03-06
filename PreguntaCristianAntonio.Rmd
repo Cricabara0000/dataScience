@@ -2,10 +2,12 @@
 title: "PreguntaCristianAntonio"
 author: "Cristian Antonio Cabello Arango"
 date: "2024-03-06"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-### ¿Cómo se Relacionan los Factores Demográficos con la Salud Mental?
+### ¿Cómo se relacionan los Factores Demográficos con la Salud Mental?
 
 # **Carga de datos**
 
