@@ -106,6 +106,30 @@ print(hist)
 ```
 
 ```{r}
+max_values_mental_disorders <- df_p %>%
+  group_by(Year) %>%
+  summarise(max_mental_disorder = max(Schizophrenia, Bipolar.disorders, Eating.disorders, Anxiety.disorders, Drug.use.disorders, Depression, Alcohol.use.disorders, na.rm = TRUE))
+
+options(repr.plot.width = 20, repr.plot.height = 6)
+
+hist_mental_disorders <- ggplot(df_p, aes(x = Year)) +
+  geom_col(aes(y = Schizophrenia, fill = "Esquizofrenia"), position = position_nudge(x = -0.5), width = 0.1, color = "blue") +
+  geom_col(aes(y = Bipolar.disorders, fill = "Trastorno bipolar"), position = position_nudge(x = -0.3), width = 0.1, color = "green") +
+  geom_col(aes(y = Eating.disorders, fill = "Trastornos de la alimentación"), position = position_nudge(x = -0.1), width = 0.1, color = "red") +
+  geom_col(aes(y = Anxiety.disorders, fill = "Trastornos de ansiedad"), position = position_nudge(x = 0.1), width = 0.1, color = "orange") +
+  geom_col(aes(y = Drug.use.disorders, fill = "Trastornos por consumo de drogas"), position = position_nudge(x = 0.3), width = 0.1, color = "purple") +
+  geom_col(aes(y = Depression, fill = "Depresión"), position = position_nudge(x = 0.5), width = 0.1, color = "yellow") +
+  geom_col(aes(y = Alcohol.use.disorders, fill = "Trastornos por consumo de alcohol"), position = position_nudge(x = 0.7), width = 0.1, color = "pink") +
+  labs(title = "Enfermedades mentales con mayor prevalencia por año en el mundo",
+       x = "Año",
+       y = "Prevalencia") +
+  scale_fill_manual(values = c("Esquizofrenia" = "blue", "Trastorno bipolar" = "green", "Trastornos de la alimentación" = "red", "Trastornos de ansiedad" = "orange", "Trastornos por consumo de drogas" = "purple", "Depresión" = "yellow", "Trastornos por consumo de alcohol" = "pink")) 
+print(hist_mental_disorders)
+
+```
+
+
+```{r}
 if(!require(arules)) install.packages("arules")
 library(arules)
 ```
