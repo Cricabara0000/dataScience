@@ -1,9 +1,15 @@
 ---
 title: "PreguntaCristianAntonio"
-author: "ccabello"
-date: "2024-03-03"
+author: "Cristian Antonio Cabello Arango"
+date: "2024-03-06"
 output: html_document
 ---
+
+### ¿Cómo se Relacionan los Factores Demográficos con la Salud Mental?
+
+# **Carga de datos**
+
+En esta sección, se cargan los conjuntos de datos datosMH1, datosMH2, datosMH3, y datosMH4 desde archivos CSV ubicados en la carpeta "data".
 
 ```{r}
 dataMH1 <- read.csv("data/datosMH1.csv")
@@ -16,6 +22,11 @@ head(datosMH2)
 head(datosMH3)
 head(datosMH4)
 ```
+
+# Preprocesamiento
+
+En este apartado se comienza con la etapa de preprocesameinto de los datos con una fusión de los conjuntos de datos, obtenidos de las preguntas planteadas para el proyecto grupal, por pares (datosMH1 y datosMH4, datosMH2 y datosMH3) en función de las columnas "Entity" y "Year". Luego, se fusionan los resultados de estas dos fusiones en un único conjunto de datos df.
+
 ```{r}
 df1 <- merge(datosMH1, datosMH4, by = c("Entity", "Year"))
 df1 <- df1[3137: nrow(df1), ]
@@ -29,7 +40,6 @@ df <- merge(df1, df2, by = c("Entity", "Year"))
 
 print(df)
 ```
-
 
 ```{r}
 df <- subset(df, select = -Code.x.x)
@@ -58,9 +68,9 @@ print(na_val)
 
 ```
 
+En esta etapa se han eliminado columnas innecesarias del conjunto de datos df utilizando la función subset(). Además, se convierten ciertas columnas a tipos de datos numéricos o enteros usando as.double() y as.integer() para mantener una coherencia en la aplicación de las técnicas que se verán mas adelante.
 
-
-
+Cabe destacar que ninguna de las variables del conjunto muestra valores nulos salvo la variable "Population.x". Analizando el conjunto de datos hemos observado que las filas con datos faltantes en esta variable se produce debido a que hay zonas continentales que se definen como entidades al igual que los países y no tienen en cuenta el número de habitantes pues se podrían obtener agrupando los países que forman parte de dicha zona continental. Por ello, se decide dividir dos datasets, uno que contengan los datos por zonas continentales (con los valores nulos de la población) y otro dataset con los datos por cada país (sin valores nulos).
 
 ```{r}
 df_w <- df[is.na(df$Population.x), ]
@@ -70,13 +80,19 @@ head(df_w)
 head(df_p)
 
 ```
-En df_w se encuentran los datos de los continentes, por eso contiene valores nulos en la población.
-En df_p se encuentran los datos de los países del mundo y no contiene valores nulos en ninguno de sus atributos.
+
+En df_w se encuentran los datos de los continentes, por eso contiene valores nulos en la población. En df_p se encuentran los datos de los países del mundo y no contiene valores nulos en ninguno de sus atributos.
 
 ```{r}
 summary(df_p)
+
 ```
 
+# Visualización de datos
+
+En este apartado, se pretende representar diferentes gráficas que repreesentan información sobre las tasas de suicidios.
+
+En primer lugar, se representa la prevalencia de trastornos mentales en hombres y mujeres a lo largo de los años en el mundo, así como la prevalencia de diferentes trastornos mentales por año. Estos gráficos permitirán comprender de forma visual de cómo han variado estas prevalencias con el tiempo.
 
 ```{r}
 library(ggplot2)
@@ -87,7 +103,6 @@ max_values <- df_p %>%
   summarise(max_male = max(`Prevalence in males (%)`, na.rm = TRUE),
             max_female = max(`Prevalence in females (%)`, na.rm = TRUE))
 
-# Crear el histograma vertical
 hist <- ggplot(df_p, aes(x = Year)) +
           geom_col(aes(y = `Prevalence in males (%)`, fill = "Prevalencia en hombres"), position = position_nudge(x = -0.2), width = 0.4, color = "blue") +
           geom_col(aes(y = `Prevalence in females (%)`, fill = "Prevalencia en mujeres"), position = position_nudge(x = 0.2), width = 0.4, color = "red") +
@@ -103,7 +118,13 @@ hist <- ggplot(df_p, aes(x = Year)) +
 
 # Mostrar el histograma
 print(hist)
+
+
 ```
+
+Como se puede observar, tanto la tendencia de prevalencia en hombre como la prevalencia en mujeres de trastornos en salud mental parece constante a lo largo del rango de los años entre el 1990 y el 2017. Además, se aprecia claramente que la prevalencia es mayor en mujeres que en hombres en prácticamente el doble de porcentaje.
+
+En segundo lugar se representa un gráfico de barras que muestra el porcentaje de enfermedades mentales en el mundo a lo largo de los años.
 
 ```{r}
 max_values_mental_disorders <- df_p %>%
@@ -128,50 +149,33 @@ print(hist_mental_disorders)
 
 ```
 
+Como podemos observar, los trastornos de ansiedad superan en creces el resto de trastornos, seguido de los trastornos por depresión. El resto de trastornos oscila en valores por debajo del 3%. La gran mayoría presentan una tendencia constante. menos los trastornos por consumo de drogas que presentan una tendencia creciente.
+
+# Reglas de asociación
+
+En este apartado hemos utilizado la técnica de reglas de asociación para un análisis de patrones o asociaciones interesantes entre las variables del conjunto de datos.
 
 ```{r}
 if(!require(arules)) install.packages("arules")
 library(arules)
 ```
+
 ```{r}
 reglas <- apriori(df_p) 
 inspect(reglas)
 ```
 
-
-
-Vemos que hemos obtenido 935 reglas
+Vemos que hemos obtenido 935 reglas, lo que significa una gran cantidad y un alto tiempo de procesamiento y obtención de resultados. Por ello, decidimos acotar las variables en las que pretendemos obtener las reglas de asociación entre los diferentes trastornos de enfermedad mental y los países mundiales.
 
 Para observar las reglas de asociación entre la prevalencia en trastornos mentales por género para cada país en el conjunto de datos, hemos seleccionado las siguientes variables:
 
-Entidad: Esta variable permitirá identificar cada país en el conjunto de datos y segmentar el análisis por país.
-
-
-Prevalencia en hombres y mujeres: Incluye las variables que representan la prevalencia de trastornos mentales en hombres y mujeres por separado. Esto permitirá examinar las diferencias de género en la prevalencia de trastornos mentales para cada país.
-
-Con estas variables, se intentará identificar asociaciones entre los trastornos mentales y los grupos de género para cada país utilizando técnicas de análisis de reglas de asociación, con el algoritmo Apriori.
-
-```{r}
-prevalence_data <- df_p[, c("Entity", "Prevalence in males (%)", "Prevalence in females (%)")]
-head(prevalence_data)
-
-paises <- unique(df_p$Entity)
-dataset_paises <- data.frame(Entity = paises)
-head(dataset_paises) 
-
-prevalence_by_country <- aggregate(cbind(Prevalence_in_males, Prevalence_in_females) ~ Entity, data = prevalence_data, FUN = mean)
-```
+Con estas variables, se intentará identificar asociaciones entre los trastornos mentales para cada país utilizando el algoritmo Apriori.
 
 ```{r}
 paises <- dataset_paises$Entity
-
-# Crear un vector que contenga la cadena "Entity=pais" para cada país
 vector_entity_pais <- paste("Entity=", paises, sep="")
-
-# Mostrar el vector resultante
 print(vector_entity_pais)
 ```
-
 
 ```{r}
 dataset <- df_p[, c("Entity", "Schizophrenia", "Bipolar.disorders", "Eating.disorders", "Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders")]
@@ -184,6 +188,7 @@ inspect(rules)
 
 ```
 
+En esta ejecución se han obtenido 351 resultados de regals de asociación. Para poder entender un poco más las soluciones, representamos las 10 reglas ordenadas por la confianza.
 
 ```{r}
 top_10_item <- sort(rules, by="confidence", decreasing=TRUE) [1:10]
@@ -191,6 +196,11 @@ top_10_item <- sort(rules, by="confidence", decreasing=TRUE) [1:10]
 inspect(top_10_item)
 ```
 
+Como podemos observar,el consecuente Greenland presenta la confianza más alta. También se observan varios consecuentes repetidos en estas reglas en países como Haiti, Chipre o Israel. Por ejemplo, para el último resultado podemos observar que en Haiti, los porcentajes de enfermedades mentales como la esquizofrenia ronda entre el rango semicerrado de 0.147% y 0.189%, trastornos por bipolaridad en un rango semicerrado de 0.781% y 1.21% y depresión entre 2.14% y 3.14%.
+
+# Visualización de resultados
+
+Para finalizar el proyecto, hemos representado una gráfica de barra de la confianza de las reglas de asociación por país.
 
 ```{r}
 for (pais in vector_entity_pais) {
@@ -202,9 +212,6 @@ for (pais in vector_entity_pais) {
 }
 
 ```
-
-
-
 
 ```{r}
 library(ggplot2)
@@ -225,31 +232,12 @@ ggplot(df, aes(x = reorder(Pais, -Confianza), y = Confianza)) +
   labs(title = "Confianza de la regla más alta por país",
        x = "País",
        y = "Confianza") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotar las etiquetas del eje x para mayor legibilidad
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
+Para obtener este resultado hemos seleccionado el valor de confianza máximo para cada país y hemos graficado el resultado. Como se puede observar, la mayor confianza de las reglas de asociación se presenta en países americanos como Argentica, Canada o Colombia.
 
+En resumen, este proyecto realiza un análisis exhaustivo de datos relacionados con la salud mental a nivel mundial, utilizando técnicas de preprocesamiento, visualización y análisis de reglas de asociación para obtener información valiosa sobre la prevalencia de trastornos mentales y su relación con la ubicación geográfica, observando que los países americanos obtienen información con un mayor porcentaje de confianza que el resto. Por ello, podemos afirmar que para otros estudios, se podrían simplificar los datos agrupando por el continente americano.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Muchas gracias.
