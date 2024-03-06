@@ -14,10 +14,10 @@ output:
 En esta sección, se cargan los conjuntos de datos datosMH1, datosMH2, datosMH3, y datosMH4 desde archivos CSV ubicados en la carpeta "data".
 
 ```{r}
-dataMH1 <- read.csv("data/datosMH1.csv")
-dataMH2 <- read.csv("data/datosMH2.csv")
-dataMH3 <- read.csv("data/datosMH3.csv")
-dataMH4 <- read.csv("data/datosMH4.csv")
+datosMH1 <- read.csv("data/datosMH1.csv")
+datosMH2 <- read.csv("data/datosMH2.csv")
+datosMH3 <- read.csv("data/datosMH3.csv")
+datosMH4 <- read.csv("data/datosMH4.csv")
 
 head(datosMH1)
 head(datosMH2)
@@ -53,11 +53,11 @@ df <- subset(df, select = -Population.y)
 df$Schizophrenia <- as.double(df$Schizophrenia)
 df$Bipolar.disorders <- as.double(df$Bipolar.disorders)
 df$Eating.disorders <- as.double(df$Eating.disorders)
-df$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)` <- as.double(df$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`)
-df$`Prevalence in males (%)` <- as.double(df$`Prevalence in males (%)`)
-df$`Prevalence in females (%)` <- as.double(df$`Prevalence in females (%)`)
-df$`Suicide rate (deaths per 100000 individuals)`<-as.double(df$`Suicide rate (deaths per 100000 individuals)`)
-df$`Depressive disorder rates (number suffering per 100000)`<- as.double(df$`Depressive disorder rates (number suffering per 100000)`)
+df$Prevalence...Depressive.disorders...Sex..Both...Age..All.Ages..Number...people.suffering.from.depression. <- as.double(df$Prevalence...Depressive.disorders...Sex..Both...Age..All.Ages..Number...people.suffering.from.depression.)
+df$Prevalence.in.males.... <- as.double(df$Prevalence.in.males....)
+df$Prevalence.in.females....<- as.double(df$Prevalence.in.females....)
+df$Suicide.rate..deaths.per.100000.individuals.<-as.double(df$Suicide.rate..deaths.per.100000.individuals.)
+df$Depressive.disorder.rates..number.suffering.per.100000.<- as.double(df$Depressive.disorder.rates..number.suffering.per.100000.)
 df$Year <- as.integer(df$Year)
 df$Population.x <- as.integer(df$Population.x)
 
@@ -102,12 +102,12 @@ library(dplyr)
 
 max_values <- df_p %>%
   group_by(Year) %>%
-  summarise(max_male = max(`Prevalence in males (%)`, na.rm = TRUE),
-            max_female = max(`Prevalence in females (%)`, na.rm = TRUE))
+  summarise(max_male = max(Prevalence.in.males...., na.rm = TRUE),
+            max_female = max(Prevalence.in.females...., na.rm = TRUE))
 
 hist <- ggplot(df_p, aes(x = Year)) +
-          geom_col(aes(y = `Prevalence in males (%)`, fill = "Prevalencia en hombres"), position = position_nudge(x = -0.2), width = 0.4, color = "blue") +
-          geom_col(aes(y = `Prevalence in females (%)`, fill = "Prevalencia en mujeres"), position = position_nudge(x = 0.2), width = 0.4, color = "red") +
+          geom_col(aes(y = Prevalence.in.males...., fill = "Prevalencia en hombres"), position = position_nudge(x = -0.2), width = 0.4, color = "blue") +
+          geom_col(aes(y = Prevalence.in.females...., fill = "Prevalencia en mujeres"), position = position_nudge(x = 0.2), width = 0.4, color = "red") +
           labs(title = "Prevalencia en Hombres y Mujeres por Año en el Mundo",
                x = "Año",
                y = "Prevalencia") +
@@ -174,6 +174,8 @@ Para observar las reglas de asociación entre la prevalencia en trastornos menta
 Con estas variables, se intentará identificar asociaciones entre los trastornos mentales para cada país utilizando el algoritmo Apriori.
 
 ```{r}
+paises <- unique(df_p$Entity)
+dataset_paises <- data.frame(Entity = paises)
 paises <- dataset_paises$Entity
 vector_entity_pais <- paste("Entity=", paises, sep="")
 print(vector_entity_pais)
