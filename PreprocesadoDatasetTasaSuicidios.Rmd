@@ -52,7 +52,7 @@ Crear un csv con los paises
 
 ```{r}
 # Especificar la ruta donde deseas guardar el archivo CSV
-ruta_exportacion <- "data/1.1.OMSTasaMortalidadSuicidio/paises_tasa_suicidio.csv"
+ruta_exportacion <- "data/1.OMSTasaMortalidadSuicidio/paises_tasa_suicidio.csv"
 
 # Exportar el dataframe a un archivo CSV
 write.csv(df_paises, file = ruta_exportacion, row.names = FALSE)
