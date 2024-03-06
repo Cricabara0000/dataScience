@@ -17,48 +17,239 @@ head(datosMH3)
 head(datosMH4)
 ```
 ```{r}
-dff <- merge(datosMH1, datosMH4, by = c("Entity","Year"))
-dff <- dff[3137: nrow(dff), ]
-rownames(dff) <- NULL
-dff1 <- merge(datosMH2, datosMH3, by = c("Entity", "Year"))
-dff1 <- dff1[3137: nrow(dff), ]
-rownames(dff1) <- NULL
-dataMH <- merge(dff, dff1, by = c("Entity", "Year"))
-summary(dataMH)
+df1 <- merge(datosMH1, datosMH4, by = c("Entity", "Year"))
+df1 <- df1[3137: nrow(df1), ]
+rownames(df1) <- NULL
+
+df2 <- merge(datosMH2, datosMH3, by = c("Entity", "Year"))
+df2 <- df2[3137: nrow(df2), ]
+rownames(df2) <- NULL
+
+df <- merge(df1, df2, by = c("Entity", "Year"))
+
+print(df)
+```
+
+
+```{r}
+df <- subset(df, select = -Code.x.x)
+df <- subset(df, select = -Code.y.x)
+df <- subset(df, select = -Code.x.y)
+df <- subset(df, select = -Code.y.y)
+df <- subset(df, select = -Population.y)
+
+df$Schizophrenia <- as.double(df$Schizophrenia)
+df$Bipolar.disorders <- as.double(df$Bipolar.disorders)
+df$Eating.disorders <- as.double(df$Eating.disorders)
+df$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)` <- as.double(df$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`)
+df$`Prevalence in males (%)` <- as.double(df$`Prevalence in males (%)`)
+df$`Prevalence in females (%)` <- as.double(df$`Prevalence in females (%)`)
+df$`Suicide rate (deaths per 100000 individuals)`<-as.double(df$`Suicide rate (deaths per 100000 individuals)`)
+df$`Depressive disorder rates (number suffering per 100000)`<- as.double(df$`Depressive disorder rates (number suffering per 100000)`)
+df$Year <- as.integer(df$Year)
+df$Population.x <- as.integer(df$Population.x)
+
+na_val <- colSums(is.na(df))
+print("Valores nulos en df:")
+print(na_val)
+
+
+
+
+```
+
+
+
+
+
+```{r}
+df_w <- df[is.na(df$Population.x), ]
+df_p <- df[!is.na(df$Population.x), ]
+
+head(df_w)
+head(df_p)
+
+```
+En df_w se encuentran los datos de los continentes, por eso contiene valores nulos en la población.
+En df_p se encuentran los datos de los países del mundo y no contiene valores nulos en ninguno de sus atributos.
+
+```{r}
+summary(df_p)
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+max_values <- df_p %>%
+  group_by(Year) %>%
+  summarise(max_male = max(`Prevalence in males (%)`, na.rm = TRUE),
+            max_female = max(`Prevalence in females (%)`, na.rm = TRUE))
+
+# Crear el histograma vertical
+hist <- ggplot(df_p, aes(x = Year)) +
+          geom_col(aes(y = `Prevalence in males (%)`, fill = "Prevalencia en hombres"), position = position_nudge(x = -0.2), width = 0.4, color = "blue") +
+          geom_col(aes(y = `Prevalence in females (%)`, fill = "Prevalencia en mujeres"), position = position_nudge(x = 0.2), width = 0.4, color = "red") +
+          labs(title = "Prevalencia en Hombres y Mujeres por Año en el Mundo",
+               x = "Año",
+               y = "Prevalencia") +
+          scale_fill_manual(values = c("Prevalencia en hombres" = "blue", "Prevalencia en mujeres" = "red")) +
+          geom_point(data = max_values, aes(y = max_male), color = "black") +
+          geom_point(data = max_values, aes(y = max_female), color = "black") +
+          geom_line(data = max_values, aes(y = max_male), color = "black") +
+          geom_line(data = max_values, aes(y = max_female), color = "black") +
+          theme_minimal()
+
+# Mostrar el histograma
+print(hist)
 ```
 
 ```{r}
-dataMH$Year <- as.integer(dataMH$Year)
-dataMH$Population <- as.integer(dataMH$Population)
-dataMH$Schizophrenia <- as.double(dataMH$Schizophrenia)
-dataMH$Bipolar.disorders <- as.double(dataMH$Bipolar.disorders)
-dataMH$Eating.disorders <- as.double(dataMH$Eating.disorders)
-dataMH$`Prevalence in males (%)` <- as.double(dataMH$`Prevalence in males (%)`)
-dataMH$`Prevalence in females (%)` <- as.double(dataMH$`Prevalence in females (%)`)
-dataMH$`Suicide rate (deaths per 100000 individuals)` <- as.double(dataMH$`Suicide rate (deaths per 100000 individuals)`)
-dataMH$`Depressive disorder rates (number suffering per 100000)` <- as.double(dataMH$`Depressive disorder rates (number suffering per 100000)`)
-dataMH$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`<- as.double(dataMH$`Prevalence - Depressive disorders - Sex: Both - Age: All Ages (Number) (people suffering from depression)`)
-summary(dataMH)
-#write.csv(dataMH, file = "dataMH.csv", row.names = FALSE)
+max_values_mental_disorders <- df_p %>%
+  group_by(Year) %>%
+  summarise(max_mental_disorder = max(Schizophrenia, Bipolar.disorders, Eating.disorders, Anxiety.disorders, Drug.use.disorders, Depression, Alcohol.use.disorders, na.rm = TRUE))
+
+options(repr.plot.width = 20, repr.plot.height = 6)
+
+hist_mental_disorders <- ggplot(df_p, aes(x = Year)) +
+  geom_col(aes(y = Schizophrenia, fill = "Esquizofrenia"), position = position_nudge(x = -0.5), width = 0.1, color = "blue") +
+  geom_col(aes(y = Bipolar.disorders, fill = "Trastorno bipolar"), position = position_nudge(x = -0.3), width = 0.1, color = "green") +
+  geom_col(aes(y = Eating.disorders, fill = "Trastornos de la alimentación"), position = position_nudge(x = -0.1), width = 0.1, color = "red") +
+  geom_col(aes(y = Anxiety.disorders, fill = "Trastornos de ansiedad"), position = position_nudge(x = 0.1), width = 0.1, color = "orange") +
+  geom_col(aes(y = Drug.use.disorders, fill = "Trastornos por consumo de drogas"), position = position_nudge(x = 0.3), width = 0.1, color = "purple") +
+  geom_col(aes(y = Depression, fill = "Depresión"), position = position_nudge(x = 0.5), width = 0.1, color = "yellow") +
+  geom_col(aes(y = Alcohol.use.disorders, fill = "Trastornos por consumo de alcohol"), position = position_nudge(x = 0.7), width = 0.1, color = "pink") +
+  labs(title = "Enfermedades mentales con mayor prevalencia por año en el mundo",
+       x = "Año",
+       y = "Prevalencia") +
+  scale_fill_manual(values = c("Esquizofrenia" = "blue", "Trastorno bipolar" = "green", "Trastornos de la alimentación" = "red", "Trastornos de ansiedad" = "orange", "Trastornos por consumo de drogas" = "purple", "Depresión" = "yellow", "Trastornos por consumo de alcohol" = "pink")) 
+print(hist_mental_disorders)
+
+```
+
+
+```{r}
+if(!require(arules)) install.packages("arules")
+library(arules)
+```
+```{r}
+reglas <- apriori(df_p) 
+inspect(reglas)
+```
+
+
+
+Vemos que hemos obtenido 935 reglas
+
+Para observar las reglas de asociación entre la prevalencia en trastornos mentales por género para cada país en el conjunto de datos, hemos seleccionado las siguientes variables:
+
+Entidad: Esta variable permitirá identificar cada país en el conjunto de datos y segmentar el análisis por país.
+
+
+Prevalencia en hombres y mujeres: Incluye las variables que representan la prevalencia de trastornos mentales en hombres y mujeres por separado. Esto permitirá examinar las diferencias de género en la prevalencia de trastornos mentales para cada país.
+
+Con estas variables, se intentará identificar asociaciones entre los trastornos mentales y los grupos de género para cada país utilizando técnicas de análisis de reglas de asociación, con el algoritmo Apriori.
+
+```{r}
+prevalence_data <- df_p[, c("Entity", "Prevalence in males (%)", "Prevalence in females (%)")]
+head(prevalence_data)
+
+paises <- unique(df_p$Entity)
+dataset_paises <- data.frame(Entity = paises)
+head(dataset_paises) 
+
+prevalence_by_country <- aggregate(cbind(Prevalence_in_males, Prevalence_in_females) ~ Entity, data = prevalence_data, FUN = mean)
 ```
 
 ```{r}
-dataMH_america <- subset(dataMH, grepl("America", Entity))
-head(dataMH_america)
+paises <- dataset_paises$Entity
 
-dataMH_europe <- subset(dataMH, grepl("Europe", Entity))
-head(dataMH_europe)
+# Crear un vector que contenga la cadena "Entity=pais" para cada país
+vector_entity_pais <- paste("Entity=", paises, sep="")
 
-dataMH_asia <- subset(dataMH, grepl("Asia", Entity))
-head(dataMH_asia)
-
-dataMH_africa <- subset(dataMH, grepl("Africa", Entity))
-head(dataMH_africa)
-
-dataMH_oceania <- subset(dataMH, grepl("Oceania", Entity))
-head(dataMH_oceania)
-
-dataMH_world <- rbind(dataMH_america, dataMH_europe, dataMH_asia, dataMH_africa, dataMH_oceania)
-head(dataMH_world)
+# Mostrar el vector resultante
+print(vector_entity_pais)
 ```
+
+
+```{r}
+dataset <- df_p[, c("Entity", "Schizophrenia", "Bipolar.disorders", "Eating.disorders", "Anxiety.disorders", "Drug.use.disorders", "Depression", "Alcohol.use.disorders")]
+head(dataset)
+
+rules <- apriori(dataset, parameter = list(minval=2, support = 0.005),
+                 appearance = list(rhs=c(vector_entity_pais), default="lhs"))
+
+inspect(rules)
+
+```
+
+
+```{r}
+top_10_item <- sort(rules, by="confidence", decreasing=TRUE) [1:10]
+
+inspect(top_10_item)
+```
+
+
+```{r}
+for (pais in vector_entity_pais) {
+  rules_country <- subset(rules, subset = rhs %in% pais)
+  if (length(rules_country) > 0) {
+    rules_country <- sort(rules_country, by="confidence", decreasing=TRUE)[1]
+    inspect(rules_country)
+  }
+}
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+
+df <- data.frame(Pais = character(),
+                 Confianza = numeric(),
+                 stringsAsFactors = FALSE)
+
+for (pais in vector_entity_pais) {
+  rules_country <- subset(rules, subset = rhs %in% pais)
+  if (length(rules_country) > 0) {
+    top_rule <- sort(rules_country, by="confidence", decreasing=TRUE)[1]
+    df <- rbind(df, data.frame(Pais = pais, Confianza = top_rule@quality$confidence))
+  }
+}
+ggplot(df, aes(x = reorder(Pais, -Confianza), y = Confianza)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Confianza de la regla más alta por país",
+       x = "País",
+       y = "Confianza") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotar las etiquetas del eje x para mayor legibilidad
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
